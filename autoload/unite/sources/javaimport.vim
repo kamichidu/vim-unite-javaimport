@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        javaimport.vim
-" Last Change: 18-Jun-2013.
+" Last Change: 21-Jun-2013.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -32,8 +32,10 @@ let s:save_cpo= &cpo
 set cpo&vim
 
 let s:source= {
-\   'name'        : 'javaimport',
-\   'description' : 'candidates from classes in current classpath.',
+\   'name'           : 'javaimport',
+\   'description'    : 'candidates from classes in current classpath.',
+\   'sorters'        : ['sorter_word'],
+\   'max_candidates' : 100,
 \}
 
 function! unite#sources#javaimport#define()
@@ -58,13 +60,7 @@ function! s:source.gather_candidates(args, context)
         \})
     endfor
 
-    call sort(l:result, 's:candidate_comparator')
-
     return l:result
-endfunction
-
-function! s:candidate_comparator(lhs, rhs)
-    return a:lhs.word > a:rhs.word
 endfunction
 
 function! s:classpaths()
