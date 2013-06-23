@@ -1,5 +1,5 @@
 " ----------------------------------------------------------------------------
-" File:        autoload/javaimport.vim
+" File:        plugin/javaimport.vim
 " Last Change: 29-Jun-2013.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
@@ -28,80 +28,16 @@
 "              OTHER DEALINGS IN THE SOFTWARE.
 " }}}
 " ----------------------------------------------------------------------------
+if exists('g:loaded_javaimport') && g:loaded_javaimport
+    finish
+endif
+let g:loaded_javaimport= 1
+
 let s:save_cpo= &cpo
 set cpo&vim
 
-"""
-" importの設定を返す
-"
-" @return
-"   次の形式に則ったDictionaryのList
-"   [
-"       {
-"           'path': 'path/to/item', 
-"           'type': {'jar'|'file'|'javadoc'}, 
-"           'javadoc': 'path/to/javadoc', 
-"       }, 
-"   ]
-""
-function! javaimport#import_config() " {{{
-    if !filereadable('.javaimport')
-        return []
-    endif
-
-    perl << END
-use YAML::Syck;
-use JSON::Syck;
-
-my $data= YAML::Syck::LoadFile './.javaimport';
-
-my @result;
-foreach my $key (keys %$data)
-{
-    my $type;
-    if($key ~~ qr|^http://|m)
-    {
-        $type= 'javadoc';
-    }
-    elsif($key ~~ qr|\.jar$|m)
-    {
-        $type= 'jar';
-    }
-    elsif(-d $key)
-    {
-        $type= 'directory';
-    }
-    else
-    {
-        $type= 'unknown';
-    }
-
-    my $javadoc;
-    if(exists $data->{$key}{javadoc})
-    {
-        $javadoc= $data->{$key}{javadoc};
-    }
-    else
-    {
-        $javadoc= '';
-    }
-
-    push @result, {
-        path => $key, 
-        type => $type, 
-        javadoc => $javadoc, 
-    };
-}
-
-my $json= JSON::Syck::Dump \@result;
-VIM::DoCommand("let l:result= $json");
-
-1;
-END
-
-    return l:result
-endfunction
-" }}}
+let g:javaimport_config= get(g:, 'javaimport_config', {})
+let g:javaimport_config.cache_dir= get(g:javaimport_config, 'cache_dir', $TEMP.'/.javaimport/')
 
 let &cpo= s:save_cpo
 unlet s:save_cpo
