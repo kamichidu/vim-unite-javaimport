@@ -153,7 +153,7 @@ function! unite#sources#javaimport#define() " {{{
 endfunction
 " }}}
 function! s:source.gather_candidates(args, context) " {{{
-    let l:configs= javaimport#config()
+    let l:configs= javaimport#import_config()
 
     let l:result= []
     for l:config in l:configs
