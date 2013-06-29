@@ -34,6 +34,7 @@ set cpo&vim
 let s:V= vital#of('unite-javaimport')
 let s:L= s:V.import('Data.List')
 let s:H= s:V.import('Web.Http')
+let s:X= s:V.import('Web.Html')
 let s:S= s:V.import('Data.String')
 let s:source= {
 \   'name'           : 'javaimport',
@@ -43,8 +44,8 @@ let s:source= {
 \}
 unlet s:V
 
-function! s:gather_from_javadoc(path) " {{{
-    let l:response= s:H.get(a:path.'/allclasses-noframe.html')
+function! s:gather_from_javadoc(config) " {{{
+    let l:response= s:H.get(a:config.path.'/allclasses-noframe.html')
 
     if !l:response.success
         return []
@@ -52,7 +53,7 @@ function! s:gather_from_javadoc(path) " {{{
 
     let l:li_of_classes= filter(split(l:response.content, "\n"), 'v:val =~# "^<li>.*</li>$"')
 
-    return map(l:li_of_classes, 's:to_class_name_for_javadoc(v:val)')
+    return map(l:li_of_classes, 's:new_candidate(a:config, s:to_class_name_for_javadoc(v:val))')
 endfunction
 
 function! s:to_class_name_for_javadoc(li_of_class)
@@ -61,23 +62,23 @@ function! s:to_class_name_for_javadoc(li_of_class)
     return substitute(l:html, '/', '.', 'g')
 endfunction
 " }}}
-function! s:gather_from_directory(path) " {{{
+function! s:gather_from_directory(config) " {{{
     " TODO
     if filereadable('./tags')
         call delete('./tags')
     endif
     " ctags --language-force=java --langmap=Java:.java --java-kinds=cgi --recurse=yes
-    call system('ctags --append=yes --language-force=java --langmap=Java:.java --java-kinds=cgi --recurse=yes '.a:path)
+    call system('ctags --append=yes --language-force=java --langmap=Java:.java --java-kinds=cgi --recurse=yes '.a:config.path)
 
     " collect class, interface and enum name.
     let l:result= map(
     \   s:filter_tags_line(readfile('tags')), 
-    \   's:type_from_tags_line(a:path, v:val)'
+    \   's:type_from_tags_line(a:config.path, v:val)'
     \)
     if filereadable('./tags')
         call delete('./tags')
     endif
-    return l:result
+    return map(l:result, 's:new_candidate(a:config, v:val)')
 endfunction
 
 function! s:filter_tags_line(tags_lines)
@@ -114,11 +115,11 @@ function! s:package_name(path, tags_line)
     return l:path
 endfunction
 " }}}
-function! s:gather_from_jar(path) " {{{
+function! s:gather_from_jar(config) " {{{
     " TODO
     let l:class_files= s:filter_class_files(
     \   split(
-    \       system('jar -tf '.shellescape(a:path)), 
+    \       system('jar -tf '.shellescape(a:config.path)), 
     \       '\n'
     \   )
     \)
@@ -127,7 +128,7 @@ function! s:gather_from_jar(path) " {{{
     \   l:class_files, 
     \   's:type_from_class_file(v:val)'
     \)
-    return l:result
+    return map(l:result, 's:new_candidate(a:config, v:val)')
 endfunction
 
 function! s:filter_class_files(files)
@@ -148,6 +149,19 @@ function! s:gather_from_unknown(path) " {{{
     return []
 endfunction
 " }}}
+function! s:new_candidate(config, canonical_name)
+    let l:javadoc_url= ''
+
+    if !empty(a:config.javadoc)
+        let l:javadoc_url= printf('%s/%s.html', a:config.javadoc, substitute(a:canonical_name, '\.', '/', 'g'))
+    endif
+
+    return {
+    \   'word'          : a:canonical_name,
+    \   'canonical_name': a:canonical_name,
+    \   'javadoc_url'   : l:javadoc_url,
+    \}
+endfunction
 function! unite#sources#javaimport#define() " {{{
     return s:source
 endfunction
@@ -157,16 +171,17 @@ function! s:source.gather_candidates(args, context) " {{{
 
     let l:result= []
     for l:config in l:configs
-        call add(l:result, s:gather_from_{l:config.type}(l:config.path))
+        call add(l:result, s:gather_from_{l:config.type}(l:config))
     endfor
 
     let l:result= s:L.flatten(l:result)
 
     return map(l:result, '{'.
-    \   '"word": v:val, '.
-    \   '"kind": "javatype", '.
-    \   '"source": "javaimport", '.
-    \   '"action__canonical_name": v:val, '.
+    \   '   "word": v:val.word, '.
+    \   '   "kind": "javatype", '.
+    \   '   "source": "javaimport", '.
+    \   '   "action__canonical_name": v:val.canonical_name, '.
+    \   '   "action__javadoc_url": v:val.javadoc_url, '.
     \   '}'
     \)
 endfunction
