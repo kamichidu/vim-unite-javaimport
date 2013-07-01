@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/unite/sources/javaimport.vim
-" Last Change: 29-Jun-2013.
+" Last Change: 02-Jul-2013.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -153,7 +153,7 @@ function! s:new_candidate(config, canonical_name)
     let l:javadoc_url= ''
 
     if !empty(a:config.javadoc)
-        let l:javadoc_url= printf('%s/%s.html', a:config.javadoc, substitute(a:canonical_name, '\.', '/', 'g'))
+        let l:javadoc_url= javaimport#to_javadoc_url(a:config.javadoc, a:canonical_name)
     endif
 
     return {

@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/javaimport.vim
-" Last Change: 29-Jun-2013.
+" Last Change: 02-Jul-2013.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -100,6 +100,31 @@ VIM::DoCommand("let l:result= $json");
 END
 
     return l:result
+endfunction
+" }}}
+
+"""
+" javadocのurlを得る
+"
+" @param  base_url       javadocのルートurl
+" @param  canonical_name クラス名
+" @return
+"   canonical_nameのjavadoc url
+""
+function! javaimport#to_javadoc_url(base_url, canonical_name) " {{{
+    " TODO: more effective implementation.
+    let l:elms= split(a:canonical_name, '\.')
+
+    let l:result= a:base_url.'/'
+    for l:elm in l:elms
+        if l:elm =~# '^\U'
+            let l:result.= l:elm.'/'
+        else
+            let l:result.= l:elm.'.'
+        endif
+    endfor
+
+    return l:result.'html'
 endfunction
 " }}}
 
