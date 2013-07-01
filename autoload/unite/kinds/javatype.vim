@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/unite/kinds/javatype.vim
-" Last Change: 29-Jun-2013.
+" Last Change: 02-Jul-2013.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -66,8 +66,8 @@ function! s:kind.action_table.import.func(candidates) " {{{
 
     call setpos('.', l:save_cursorpos)
 endfunction
-" }}}
-function! s:sort_import_statements() " {{{
+
+function! s:sort_import_statements()
     call setpos('.', [0, 1, 1, 0])
     let l:start_lnum= search('^\s*\<import\>', 'cn')
 
@@ -76,15 +76,15 @@ function! s:sort_import_statements() " {{{
 
     execute l:start_lnum.','.l:end_lnum.'sort'
 endfunction
-" }}}
-function! s:already_exists(class_name) " {{{
+
+function! s:already_exists(class_name)
     let l:imports= filter(getbufline('%', 1, '$'), 'v:val =~# "^\\s*\\<import\\>"')
     let l:same_imports= filter(l:imports, 'match(v:val, "'.a:class_name.'") >= 0')
 
     return !empty(l:same_imports)
 endfunction
-" }}}
-function! s:appendable_lnum() " {{{
+
+function! s:appendable_lnum()
     call setpos('.', [0, 1, 1, 0])
 
     let l:import_lnum= search('\<import\>', 'cn')
@@ -109,7 +109,7 @@ let s:kind.action_table.preview= {
 \   'description'  : 'show javadoc if presented.',
 \   'is_quit': 0,
 \}
-function! s:kind.action_table.preview.func(candidate)
+function! s:kind.action_table.preview.func(candidate) " {{{
     if empty(a:candidate.action__javadoc_url)
         return
     endif
@@ -128,6 +128,7 @@ function! s:kind.action_table.preview.func(candidate)
     silent 1 put =l:dom.value()
     call cursor(1, 1)
 endfunction
+" }}}
 
 let &cpo = s:save_cpo
 unlet s:save_cpo
