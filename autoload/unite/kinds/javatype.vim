@@ -34,7 +34,7 @@ set cpo&vim
 let s:V= vital#of('unite-javaimport')
 let s:HTTP= s:V.import('Web.Http')
 let s:HTML= s:V.import('Web.Html')
-let s:BUFFER= s:V.import('Vim.BufferManager').new()
+let s:BM= s:V.import('Vim.BufferManager').new()
 unlet s:V
 
 let s:kind = {
@@ -122,7 +122,7 @@ function! s:kind.action_table.preview.func(candidate)
     let l:dom= s:HTML.parse(l:response.content)
     let l:dom= l:dom.find('div', {'class': 'description'})
 
-    call s:BUFFER.open('javadoc preview')
+    call s:BM.open('javadoc preview')
     setlocal bufhidden=hide buftype=nofile noswapfile nobuflisted readonly
     silent % delete _
     silent 1 put =l:dom.value()
@@ -133,4 +133,3 @@ let &cpo = s:save_cpo
 unlet s:save_cpo
 
 " vim:foldenable:foldmethod=marker
-
