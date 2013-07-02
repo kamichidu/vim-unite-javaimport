@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/unite/kinds/javatype.vim
-" Last Change: 02-Jul-2013.
+" Last Change: 03-Jul-2013.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -64,7 +64,7 @@ function! s:kind.action_table.import.func(candidates) " {{{
 
     call s:sort_import_statements()
 
-    call setpos('.', l:save_cursorpos)
+    call setpos('.', [l:save_cursorpos[0], l:save_cursorpos[1] + 1, l:save_cursorpos[2], l:save_cursorpos[3]])
 endfunction
 
 function! s:sort_import_statements()
