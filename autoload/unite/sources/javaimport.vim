@@ -36,12 +36,6 @@ let s:L= s:V.import('Data.List')
 let s:H= s:V.import('Web.Http')
 let s:X= s:V.import('Web.Html')
 let s:S= s:V.import('Data.String')
-let s:source= {
-\   'name'           : 'javaimport',
-\   'description'    : 'candidates from classes in current classpath.',
-\   'sorters'        : ['sorter_word'],
-\   'max_candidates' : 100,
-\}
 unlet s:V
 
 function! s:gather_from_javadoc(config) " {{{
@@ -149,7 +143,7 @@ function! s:gather_from_unknown(path) " {{{
     return []
 endfunction
 " }}}
-function! s:new_candidate(config, canonical_name)
+function! s:new_candidate(config, canonical_name) " {{{
     let l:javadoc_url= ''
 
     if !empty(a:config.javadoc)
@@ -162,6 +156,13 @@ function! s:new_candidate(config, canonical_name)
     \   'javadoc_url'   : l:javadoc_url,
     \}
 endfunction
+" }}}
+let s:source= {
+\   'name'           : 'javaimport',
+\   'description'    : 'candidates from classes in current classpath.',
+\   'sorters'        : ['sorter_word'],
+\   'max_candidates' : 100,
+\}
 function! unite#sources#javaimport#define() " {{{
     return s:source
 endfunction
