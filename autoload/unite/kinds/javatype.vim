@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/unite/kinds/javatype.vim
-" Last Change: 03-Jul-2013.
+" Last Change: 06-Jul-2013.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -31,17 +31,17 @@
 let s:save_cpo = &cpo
 set cpo&vim
 
-let s:V= vital#of('unite-javaimport')
+let s:V=    vital#of('unite-javaimport')
 let s:HTTP= s:V.import('Web.Http')
 let s:HTML= s:V.import('Web.Html')
-let s:BM= s:V.import('Vim.BufferManager').new()
+let s:BM=   s:V.import('Vim.BufferManager').new()
 unlet s:V
 
 let s:kind = {
-\   'name' : 'javatype',
-\   'parents'      : [], 
-\   'default_action' : 'import',
-\   'action_table' : {},
+\   'name':           'javatype',
+\   'parents':        [],
+\   'default_action': 'import',
+\   'action_table':   {},
 \}
 
 function! unite#kinds#javatype#define() " {{{
@@ -64,7 +64,7 @@ function! s:kind.action_table.import.func(candidates) " {{{
 
     call s:sort_import_statements()
 
-    call setpos('.', [l:save_cursorpos[0], l:save_cursorpos[1] + 1, l:save_cursorpos[2], l:save_cursorpos[3]])
+    call setpos('.', javaimport#each('v:a + v:b', l:save_cursorpos, [0, 1, 0, 0]))
 endfunction
 
 function! s:sort_import_statements()

@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/javaimport.vim
-" Last Change: 02-Jul-2013.
+" Last Change: 06-Jul-2013.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -125,6 +125,34 @@ function! javaimport#to_javadoc_url(base_url, canonical_name) " {{{
     endfor
 
     return l:result.'html'
+endfunction
+" }}}
+
+"""
+" 2つのListの各要素について、exprを評価した結果を新しいListに格納して返す
+"
+" @param expr 式中に含まれるv:aはlhsの各要素に、v:bはrhsに各要素にそれぞれ置き換えらて評価される。
+" @param lhs List
+" @param rhs List
+" @return
+"   lhsとrhsの各要素について、exprの評価結果を格納したList
+" @throw lhsもしくはrhsがListでなかった場合、lhsとrhsの要素数が一致しない場合
+""
+function! javaimport#each(expr, lhs, rhs) " {{{
+    if !(type(a:lhs) == type(a:rhs) && type(a:lhs) == type([]) && len(a:lhs) == len(a:rhs))
+        throw 'illegal argument'
+    endif
+
+    let l:indices= range(0, len(a:lhs) - 1)
+    let l:result= []
+    for l:index in l:indices
+        let l:expr= a:expr
+        let l:expr= substitute(l:expr, '\<v:a\>', string(a:lhs[l:index]), 'g')
+        let l:expr= substitute(l:expr, '\<v:b\>', string(a:rhs[l:index]), 'g')
+
+        call add(l:result, eval(l:expr))
+    endfor
+    return l:result
 endfunction
 " }}}
 
