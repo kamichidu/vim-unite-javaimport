@@ -2,9 +2,9 @@
 
 System.Cache
 Data.List
-Web.Xml
-Web.Http
-Web.Json
-Web.Html
+Web.XML
+Web.HTTP
+Web.JSON
+Web.HTML
 Vim.BufferManager
 Vim.Buffer
