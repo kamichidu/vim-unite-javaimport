@@ -102,7 +102,7 @@ function! s:package_name(path, tags_line)
     " ファイル名削除
     let l:path= substitute(l:path, '/[^/]\+\.java$', '', '')
     " ^src/ を削除
-    let l:path= s:S.replace_once(l:path, a:path, '')
+    let l:path= s:S.replace_first(l:path, a:path, '')
     " / -> .
     let l:path= substitute(l:path, '/', '.', 'g')
 
