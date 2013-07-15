@@ -108,14 +108,14 @@ function! s:request(...)
   call extend(settings, deepcopy(s:default_settings), 'keep')
   let settings.method = toupper(settings.method)
   if !has_key(settings, 'url')
-    throw 'Vital.Web.Http.request(): "url" parameter is required.'
+    throw 'Vital.Web.HTTP.request(): "url" parameter is required.'
   endif
   if !s:Prelude.is_list(settings.client)
     let settings.client = [settings.client]
   endif
   let client = s:_get_client(settings)
   if empty(client)
-    throw 'Vital.Web.Http.request(): Available client not found: '
+    throw 'Vital.Web.HTTP.request(): Available client not found: '
     \    . string(settings.client)
   endif
   if has_key(settings, 'contentType')
@@ -130,6 +130,10 @@ function! s:request(...)
     if strlen(getdatastr)
       let settings.url .= '?' . getdatastr
     endif
+  endif
+  if has_key(settings, 'data')
+    let settings.data = s:_postdata(settings.data)
+    let settings.headers['Content-Length'] = len(join(settings.data, "\n"))
   endif
   let settings._file = {}
 
@@ -170,8 +174,8 @@ function! s:_readfile(file)
 endfunction
 
 function! s:_make_postfile(data)
-  let fname = tempname()
-  call writefile(s:_postdata(a:data), fname, 'b')
+  let fname = tr(tempname(),'\','/')
+  call writefile(a:data, fname, 'b')
   return fname
 endfunction
 
@@ -262,9 +266,6 @@ function! s:clients.python.available(settings)
 endfunction
 function! s:clients.python.request(settings)
   " TODO: maxRedirect, retry, outputFile
-  if has_key(a:settings, 'data')
-    let a:settings._postdata = s:_postdata(a:settings.data)
-  endif
   let header = ''
   let body = ''
   python << endpython
@@ -285,7 +286,7 @@ try:
 
             def access():
                 settings = vim.eval('a:settings')
-                data = vimlist2str(settings.get('_postdata'))
+                data = vimlist2str(settings.get('data'))
                 timeout = settings.get('timeout')
                 if timeout:
                     timeout = float(timeout)
@@ -339,18 +340,21 @@ endfunction
 
 let s:clients.curl = {}
 function! s:clients.curl.available(settings)
-  return executable('curl')
+  return executable(self._command(a:settings))
+endfunction
+function! s:clients.curl._command(settings)
+  return get(get(a:settings, 'command', {}), 'curl', 'curl')
 endfunction
 function! s:clients.curl.request(settings)
   let quote = s:_quote()
-  let command = get(a:settings, 'command', 'curl')
-  let a:settings._file.header = tempname()
+  let command = self._command(a:settings)
+  let a:settings._file.header = tr(tempname(),'\','/')
   let command .= ' --dump-header ' . quote . a:settings._file.header . quote
   let has_output_file = has_key(a:settings, 'outputFile')
   if has_output_file
     let output_file = a:settings.outputFile
   else
-    let output_file = tempname()
+    let output_file = tr(tempname(),'\','/')
     let a:settings._file.content = output_file
   endif
   let command .= ' --output ' . quote . output_file . quote
@@ -387,24 +391,27 @@ endfunction
 
 let s:clients.wget = {}
 function! s:clients.wget.available(settings)
-  return executable('wget')
+  return executable(self._command(a:settings))
+endfunction
+function! s:clients.wget._command(settings)
+  return get(get(a:settings, 'command', {}), 'wget', 'wget')
 endfunction
 function! s:clients.wget.request(settings)
   let quote = s:_quote()
-  let command = get(a:settings, 'command', 'wget')
+  let command = self._command(a:settings)
   let method = a:settings.method
   if method ==# 'HEAD'
     let command .= ' --spider'
   elseif method !=# 'GET' && method !=# 'POST'
     let a:settings.headers['X-HTTP-Method-Override'] = a:settings.method
   endif
-  let a:settings._file.header = tempname()
+  let a:settings._file.header = tr(tempname(),'\','/')
   let command .= ' -o ' . quote . a:settings._file.header . quote
   let has_output_file = has_key(a:settings, 'outputFile')
   if has_output_file
     let output_file = a:settings.outputFile
   else
-    let output_file = tempname()
+    let output_file = tr(tempname(),'\','/')
     let a:settings._file.content = output_file
   endif
   let command .= ' -O ' . quote . output_file . quote
