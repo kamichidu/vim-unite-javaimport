@@ -32,8 +32,8 @@ let s:save_cpo = &cpo
 set cpo&vim
 
 let s:V=    vital#of('unite-javaimport')
-let s:HTTP= s:V.import('Web.Http')
-let s:HTML= s:V.import('Web.Html')
+let s:HTTP= s:V.import('Web.HTTP')
+let s:HTML= s:V.import('Web.HTML')
 let s:BM=   s:V.import('Vim.BufferManager').new()
 unlet s:V
 
