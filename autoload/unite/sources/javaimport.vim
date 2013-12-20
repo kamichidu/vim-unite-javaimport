@@ -33,8 +33,8 @@ set cpo&vim
 
 let s:V= vital#of('unite-javaimport')
 let s:L= s:V.import('Data.List')
-let s:H= s:V.import('Web.Http')
-let s:X= s:V.import('Web.Html')
+let s:H= s:V.import('Web.HTTP')
+let s:X= s:V.import('Web.HTML')
 let s:S= s:V.import('Data.String')
 unlet s:V
 
