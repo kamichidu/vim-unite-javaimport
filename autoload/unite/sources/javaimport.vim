@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/unite/sources/javaimport.vim
-" Last Change: 02-Jul-2013.
+" Last Change: 23-Dec-2013.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -110,32 +110,17 @@ function! s:package_name(path, tags_line)
 endfunction
 " }}}
 function! s:gather_from_jar(config) " {{{
-    " TODO
-    let l:class_files= s:filter_class_files(
-    \   split(
-    \       system('jar -tf '.shellescape(a:config.path)), 
-    \       '\n'
-    \   )
+    let l:cmd= join(
+    \   [
+    \       'java',
+    \       '-Xbootclasspath/a:' . shellescape(a:config.path),
+    \       '-jar ' . javaimport#jar_path(),
+    \       '-r',
+    \   ],
+    \   ' '
     \)
 
-    let l:result= map(
-    \   l:class_files, 
-    \   's:type_from_class_file(v:val)'
-    \)
-    return map(l:result, 's:new_candidate(a:config, v:val)')
-endfunction
-
-function! s:filter_class_files(files)
-    return filter(a:files, 'v:val =~# "\\(/\\|\\$\\)\\a\\w*\\.class$"')
-endfunction
-
-function! s:type_from_class_file(filename)
-    let l:result= a:filename
-
-    let l:result= substitute(l:result, '\.class$', '', '')
-    let l:result= substitute(l:result, '/\|\$', '.', 'g')
-
-    return l:result
+    return map(split(vimproc#system(l:cmd), "\n"), 's:new_candidate(a:config, v:val)')
 endfunction
 " }}}
 function! s:gather_from_unknown(path) " {{{

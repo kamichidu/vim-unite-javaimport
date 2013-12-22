@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/javaimport.vim
-" Last Change: 06-Jul-2013.
+" Last Change: 23-Dec-2013.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -31,6 +31,11 @@
 let s:save_cpo= &cpo
 set cpo&vim
 
+let s:V= vital#of('unite-javaimport')
+let s:FILE= s:V.import('System.File')
+let s:JSON= s:V.import('Web.JSON')
+unlet s:V
+
 """
 " importの設定を返す
 "
@@ -49,55 +54,30 @@ function! javaimport#import_config() " {{{
         return []
     endif
 
-    perl << END
-use YAML::Syck;
-use JSON::Syck;
+    let l:sources= s:JSON.decode('[' . join(readfile('.javaimport'), "\n") . ']')
+    let l:result= []
 
-my $data= YAML::Syck::LoadFile './.javaimport';
+    for l:source in l:sources
+        let l:path= l:source.path
+        let l:type= ''
+        if l:path =~# '^http://'
+            let l:type= 'javadoc'
+        elseif l:path =~# '\.jar$'
+            let l:type= 'jar'
+        elseif isdirectory(l:path)
+            let l:type= 'directory'
+        else
+            let l:type= 'unknown'
+        endif
 
-my @result;
-foreach my $key (keys %$data)
-{
-    my $type;
-    if($key ~~ qr|^http://|m)
-    {
-        $type= 'javadoc';
-    }
-    elsif($key ~~ qr|\.jar$|m)
-    {
-        $type= 'jar';
-    }
-    elsif(-d $key)
-    {
-        $type= 'directory';
-    }
-    else
-    {
-        $type= 'unknown';
-    }
+        let l:javadoc= (has_key(l:source, 'javadoc')) ? l:source.javadoc : ''
 
-    my $javadoc;
-    if(exists $data->{$key}{javadoc})
-    {
-        $javadoc= $data->{$key}{javadoc};
-    }
-    else
-    {
-        $javadoc= '';
-    }
-
-    push @result, {
-        path => $key, 
-        type => $type, 
-        javadoc => $javadoc, 
-    };
-}
-
-my $json= JSON::Syck::Dump \@result;
-VIM::DoCommand("let l:result= $json");
-
-1;
-END
+        call add(l:result, {
+        \   'path': l:path,
+        \   'type': l:type,
+        \   'javadoc': l:javadoc,
+        \})
+    endfor
 
     return l:result
 endfunction
@@ -155,6 +135,36 @@ function! javaimport#each(expr, lhs, rhs) " {{{
     return l:result
 endfunction
 " }}}
+
+function! javaimport#jar_path()
+    return globpath(&runtimepath, 'autoload/unite-javaimport-0.01-jar-with-dependencies.jar')
+endfunction
+
+"""
+" clear cache.
+"
+""
+function! javaimport#clear_cache() " {{{
+    let l:cachedir= g:javaimport_config.cache_dir
+
+    " check exist
+    if !isdirectory(l:cachedir)
+        return
+    endif
+
+    call s:FILE.rmdir(l:cachedir, 'r')
+endfunction
+" }}}
+
+function! javaimport#sort_import_statements()
+    call setpos('.', [0, 1, 1, 0])
+    let l:start_lnum= search('^\s*\<import\>', 'cn')
+
+    call setpos('.', [0, line('$'), 1, 0])
+    let l:end_lnum= search('^\s*\<import\>', 'cnb')
+
+    execute l:start_lnum.','.l:end_lnum.'sort'
+endfunction
 
 let &cpo= s:save_cpo
 unlet s:save_cpo

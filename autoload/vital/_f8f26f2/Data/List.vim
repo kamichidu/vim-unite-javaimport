@@ -227,15 +227,7 @@ endfunction
 
 " similar to Haskell's Prelude.foldr
 function! s:foldr(f, init, xs)
-  let memo = a:init
-  for i in reverse(range(0, len(a:xs) - 1))
-    let x = a:xs[i]
-    let expr = substitute(a:f, 'v:val', string(x), 'g')
-    let expr = substitute(expr, 'v:memo', string(memo), 'g')
-    unlet memo
-    let memo = eval(expr)
-  endfor
-  return memo
+  return s:foldl(a:f, a:init, reverse(copy(a:xs)))
 endfunction
 
 " similar to Haskell's Prelude.fold11
@@ -279,6 +271,12 @@ function! s:find(list, default, f)
     endif
   endfor
   return a:default
+endfunction
+
+" Return non-zero if a:list1 and a:list2 have any common item(s).
+" Return zero otherwise.
+function! s:has_common_items(list1, list2)
+  return !empty(filter(copy(a:list1), 'index(a:list2, v:val) isnot -1'))
 endfunction
 
 let &cpo = s:save_cpo

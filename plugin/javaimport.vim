@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        plugin/javaimport.vim
-" Last Change: 29-Jun-2013.
+" Last Change: 23-Dec-2013.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -37,7 +37,9 @@ let s:save_cpo= &cpo
 set cpo&vim
 
 let g:javaimport_config= get(g:, 'javaimport_config', {})
-let g:javaimport_config.cache_dir= get(g:javaimport_config, 'cache_dir', $TEMP.'/.javaimport/')
+let g:javaimport_config.cache_dir= get(g:javaimport_config, 'cache_dir', g:unite_data_directory . '/javaimport/')
+
+command! JavaImportClearCache call javaimport#clear_cache()
 
 let &cpo= s:save_cpo
 unlet s:save_cpo

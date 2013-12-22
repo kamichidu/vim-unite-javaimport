@@ -43,18 +43,13 @@ function! s:common_head(strs)
   if empty(a:strs)
     return ''
   endif
-  let head = a:strs[0]
-  for str in a:strs[1 :]
-    if empty(str)
-      return ''
-    endif
-    let pat = substitute(str, '.', '[\0]', 'g')
-    let head = matchstr(head, '^\%[' . pat . ']')
-    if head ==# ''
-      break
-    endif
-  endfor
-  return head
+  let len = len(a:strs)
+  if len == 1
+    return a:strs[0]
+  endif
+  let strs = len == 2 ? a:strs : sort(copy(a:strs))
+  let pat = substitute(strs[0], '.', '[\0]', 'g')
+  return pat == '' ? '' : matchstr(strs[-1], '^\%[' . pat . ']')
 endfunction
 
 " Split to two elements of List. ([left, right])
@@ -132,6 +127,11 @@ else
   endfunction
 endif "}}}
 
+" Returns the bool of contains any multibyte character in s:str
+function! s:contains_multibyte(str) "{{{
+  return strlen(a:str) != s:strchars(a:str)
+endfunction "}}}
+
 " Remove last character from a:str.
 " NOTE: This returns proper value
 " even if a:str contains multibyte character(s).
@@ -176,7 +176,7 @@ endfunction
 function! s:wrap(str,...)
   let _columns = a:0 > 0 ? a:1 : &columns
   return s:L.concat(
-        \ map(split(a:str, '\r\?\n'), 's:_split_by_wcswidth(v:val, _columns - 1)'))
+        \ map(split(a:str, '\r\n\|[\r\n]'), 's:_split_by_wcswidth(v:val, _columns - 1)'))
 endfunction
 
 function! s:nr2byte(nr)

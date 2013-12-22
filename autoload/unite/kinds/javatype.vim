@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/unite/kinds/javatype.vim
-" Last Change: 06-Jul-2013.
+" Last Change: 23-Dec-2013.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -62,19 +62,9 @@ function! s:kind.action_table.import.func(candidates) " {{{
 
     call append(s:appendable_lnum(), printf('import %s;', l:canonical_name))
 
-    call s:sort_import_statements()
+    call javaimport#sort_import_statements()
 
     call setpos('.', javaimport#each('v:a + v:b', l:save_cursorpos, [0, 1, 0, 0]))
-endfunction
-
-function! s:sort_import_statements()
-    call setpos('.', [0, 1, 1, 0])
-    let l:start_lnum= search('^\s*\<import\>', 'cn')
-
-    call setpos('.', [0, line('$'), 1, 0])
-    let l:end_lnum= search('^\s*\<import\>', 'cnb')
-
-    execute l:start_lnum.','.l:end_lnum.'sort'
 endfunction
 
 function! s:already_exists(class_name)
