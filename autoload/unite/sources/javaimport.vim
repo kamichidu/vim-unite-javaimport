@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/unite/sources/javaimport.vim
-" Last Change: 23-Dec-2013.
+" Last Change: 24-Dec-2013.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -172,12 +172,30 @@ function! s:source.gather_candidates(args, context) " {{{
 
     let l:result= s:L.flatten(l:result)
 
-    return map(l:result, '{'.
-    \   '   "word": v:val.word, '.
-    \   '   "kind": "javatype", '.
-    \   '   "source": "javaimport", '.
-    \   '   "action__canonical_name": v:val.canonical_name, '.
-    \   '   "action__javadoc_url": v:val.javadoc_url, '.
+    " show classes only called by expandable
+    " otherwise only packages (for speed, memory, anti stop the world)
+    if !has_key(a:context, 'source__filter')
+        let l:packages= map(l:result, 'matchstr(v:val.canonical_name, ''\C[a-z][a-z0-9_]*\(\.[a-z][a-z0-9_]*\)*'')')
+
+        let l:packages= s:L.uniq(l:packages)
+
+        return map(l:packages, '{' .
+        \   '   "word": v:val,' .
+        \   '   "kind": "expandable",' .
+        \   '   "source": self.name,' .
+        \   '   "action__filter": v:val,' .
+        \'}'
+        \)
+    endif
+
+    call filter(l:result, 'v:val.canonical_name =~# ''^' . a:context.source__filter . '''')
+
+    return map(l:result, '{' .
+    \   '   "word": v:val.word,' .
+    \   '   "kind": "javatype",' .
+    \   '   "source": "javaimport",' .
+    \   '   "action__canonical_name": v:val.canonical_name,' .
+    \   '   "action__javadoc_url": v:val.javadoc_url,' .
     \   '}'
     \)
 endfunction
