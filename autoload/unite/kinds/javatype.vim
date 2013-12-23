@@ -31,12 +31,6 @@
 let s:save_cpo = &cpo
 set cpo&vim
 
-let s:V=    vital#of('unite-javaimport')
-let s:HTTP= s:V.import('Web.HTTP')
-let s:HTML= s:V.import('Web.HTML')
-let s:BM=   s:V.import('Vim.BufferManager').new()
-unlet s:V
-
 let s:kind = {
 \   'name':           'javatype',
 \   'parents':        [],
@@ -104,19 +98,7 @@ function! s:kind.action_table.preview.func(candidate) " {{{
         return
     endif
 
-    let l:response= s:HTTP.get(a:candidate.action__javadoc_url)
-    if !l:response.success
-        return
-    endif
-
-    let l:dom= s:HTML.parse(l:response.content)
-    let l:dom= l:dom.find('div', {'class': 'description'})
-
-    call s:BM.open('javadoc preview')
-    setlocal bufhidden=hide buftype=nofile noswapfile nobuflisted readonly
-    silent % delete _
-    silent 1 put =l:dom.value()
-    call cursor(1, 1)
+    call javaimport#preview(a:candidate.action__javadoc_url)
 endfunction
 " }}}
 

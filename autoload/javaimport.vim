@@ -36,6 +36,7 @@ let s:FILE= s:V.import('System.File')
 let s:CACHE= s:V.import('System.Cache')
 let s:JSON= s:V.import('Web.JSON')
 let s:L= s:V.import('Data.List')
+let s:BM= s:V.import('Vim.BufferManager').new()
 unlet s:V
 
 """
@@ -282,6 +283,21 @@ function! javaimport#sort_import_statements() " {{{
     endtry
 endfunction
 " }}}
+
+function! javaimport#preview(url)
+    " call s:BM.open('javadoc preview', {'range': 'current'})
+
+    " setlocal bufhidden=hide buftype=nofile noswapfile nobuflisted readonly
+
+    let l:using= g:javaimport_config.preview_using
+    if l:using ==# 'w3m' && exists(':W3mSplit')
+        execute ':W3mSplit ' . a:url
+    elseif l:using ==# 'lynx'
+        throw 'sorry, unimplemented yet'
+    else
+        throw 'unite-javaimport: illegal configuration (g:javaimport_config.preview_using): ' . l:using
+    endif
+endfunction
 
 let &cpo= s:save_cpo
 unlet s:save_cpo
