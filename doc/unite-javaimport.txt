@@ -2,7 +2,7 @@
 
 Version: 0.01
 Author:  kamichidu <c.kamunagi@gmail.com>
-Last Change: 23-Dec-2013.
+Last Change: 24-Dec-2013.
 License: The MIT License (MIT)
 
 Copyright (c) 2013 kamichidu
@@ -35,9 +35,17 @@ How to Use                                         |unite-javaimport-howtouse|
 ==============================================================================
 INTRODUCTION                                   *unite-javaimport-introduction*
 
-This plugin provide to map key & value pair to vim's dictionary from specified
-buffer.
->
+this plugin is an unite source for importing java classes.
+
+TODO
+
+DEPENDENCIES ~
+
+    * https://github.com/Shougo/unite.vim (must)
+    * Java Runtime Environment (JRE) 1.6 or higher (must)
+    * https://github.com/yuratomo/w3m.vim (to preview javadoc)
+    * Exuberant Ctags (must)
+
 ==============================================================================
 INSTALL                                             *unite-javaimport-install*
 
