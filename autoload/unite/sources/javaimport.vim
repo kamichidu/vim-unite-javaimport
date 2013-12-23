@@ -113,9 +113,11 @@ function! s:gather_from_jar(config) " {{{
     let l:cmd= join(
     \   [
     \       'java',
-    \       '-Xbootclasspath/a:' . shellescape(a:config.path),
+    \       '-Xbootclasspath/p:' . shellescape(a:config.path),
     \       '-jar ' . javaimport#jar_path(),
-    \       '-r',
+    \       '--recursive',
+    \       '--target ' . shellescape(a:config.path),
+    \       '--location platform',
     \   ],
     \   ' '
     \)
