@@ -1,0 +1,89 @@
+*unite-javaimport.txt*
+
+Version: 0.01
+Author:  kamichidu <c.kamunagi@gmail.com>
+Last Change: 23-Dec-2013.
+License: The MIT License (MIT)
+
+Copyright (c) 2013 kamichidu
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+CONTENTS                                           *unite-javaimport-contents*
+
+Introduction                                   |unite-javaimport-introduction|
+Install                                             |unite-javaimport-install|
+Interface                                         |unite-javaimport-interface|
+How to Use                                         |unite-javaimport-howtouse|
+
+==============================================================================
+INTRODUCTION                                   *unite-javaimport-introduction*
+
+This plugin provide to map key & value pair to vim's dictionary from specified
+buffer.
+>
+==============================================================================
+INSTALL                                             *unite-javaimport-install*
+
+>
+    NeoBundle 'KamunagiChiduru/unite-javaimport', {
+    \   'depends': ['Shougo/unite.vim'],
+    \}
+<
+
+==============================================================================
+INTERFACE                                         *unite-javaimport-interface*
+
+UNITE ~
+
+    to show all importable classes by your classpath (by your .javaimport),
+    execute |:Unite| command with "javaimport" as a source parameter.
+>
+    :Unite javaimport
+<
+
+COMMAND ~
+
+    :JavaImportClearCache                              *:JavaImportClearCache*
+        clear all cache.
+
+    :JavaImportSortStatements                      *:JavaImportSortStatements*
+        sort import statements on current buffer.
+
+==============================================================================
+HOW TO USE                                         *unite-javaimport-howtouse*
+
+you have to write .javaimport to your current directory (project root
+dictionary).
+
+an example for .javaimport
+>
+    {
+        'path':    'path to classpath',
+        'javadoc': 'javadoc uri for classpath',
+    },
+    {
+        'path':    'path to classpath',
+        'javadoc': 'javadoc uri for classpath',
+    },
+<
+
+==============================================================================
+vim:tw=78:ts=4:ft=help:norl:fen:
+
