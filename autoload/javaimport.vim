@@ -222,15 +222,64 @@ function! javaimport#write_cache(config, items) " {{{
 endfunction
 " }}}
 
-function! javaimport#sort_import_statements()
-    call setpos('.', [0, 1, 1, 0])
-    let l:start_lnum= search('^\s*\<import\>', 'cn')
+"""
+" sort import statements on current buffer.
+"
+" before:
+"   import java.util.Map;
+"   import java.util.Collection;
+"   import org.apache.commons.lang.StringUtils;
+"
+" after:
+"   import java.util.Collection;
+"   import java.util.Map;
+"
+"   import org.apache.commons.lang.StringUtils;
+"
+""
+function! javaimport#sort_import_statements() " {{{
+    let l:save_pos= getpos('.')
+    try
+        " gather already existed import statements
+        call setpos('.', [0, 1, 1, 0])
+        let l:start_lnum= search('^\s*\<import\>', 'cn')
 
-    call setpos('.', [0, line('$'), 1, 0])
-    let l:end_lnum= search('^\s*\<import\>', 'cnb')
+        call setpos('.', [0, line('$'), 1, 0])
+        let l:end_lnum= search('^\s*\<import\>', 'cnb')
 
-    execute l:start_lnum.','.l:end_lnum.'sort'
+        if [l:start_lnum, l:end_lnum] ==# [0, 0]
+            return
+        endif
+
+        let l:classes= getbufline('%', l:start_lnum, l:end_lnum)
+        let l:classes= filter(l:classes, 'v:val =~# ''^\s*\<import\>''')
+        let l:classes= map(l:classes, 'matchstr(v:val, ''^\s*import\s\+\<\zs[^;]\+\ze'')')
+
+        call sort(l:classes)
+
+        " separate each statements on defferent top-level domain
+        let l:statements= []
+        let l:last_domain= matchstr(l:classes[0], '^\w\+')
+        for l:class in l:classes
+            let l:domain= matchstr(l:class, '^\w\+')
+
+            if l:domain !=# l:last_domain
+                call add(l:statements, '')
+            endif
+
+            call add(l:statements, printf('import %s;', l:class))
+
+            let l:last_domain= l:domain
+        endfor
+
+        execute l:start_lnum . ',' . l:end_lnum . 'delete _'
+
+        call append(l:start_lnum - 1, l:statements)
+    finally
+        call setpos('.', l:save_pos)
+    endtry
 endfunction
+" }}}
 
 let &cpo= s:save_cpo
 unlet s:save_cpo
