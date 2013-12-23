@@ -157,7 +157,15 @@ function! s:source.gather_candidates(args, context) " {{{
 
     let l:result= []
     for l:config in l:configs
-        call add(l:result, s:gather_from_{l:config.type}(l:config))
+        if javaimport#has_cache(l:config)
+            call add(l:result, javaimport#read_cache(l:config))
+        else
+            let l:items= s:gather_from_{l:config.type}(l:config)
+
+            call javaimport#write_cache(l:config, l:items)
+
+            call add(l:result, l:items)
+        endif
     endfor
 
     let l:result= s:L.flatten(l:result)

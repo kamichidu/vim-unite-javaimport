@@ -33,6 +33,7 @@ set cpo&vim
 
 let s:V= vital#of('unite-javaimport')
 let s:FILE= s:V.import('System.File')
+let s:CACHE= s:V.import('System.Cache')
 let s:JSON= s:V.import('Web.JSON')
 unlet s:V
 
@@ -136,9 +137,15 @@ function! javaimport#each(expr, lhs, rhs) " {{{
 endfunction
 " }}}
 
-function! javaimport#jar_path()
+"""
+" an executable jar path.
+"
+" @return full path
+""
+function! javaimport#jar_path() " {{{
     return globpath(&runtimepath, 'autoload/unite-javaimport-0.01-jar-with-dependencies.jar')
 endfunction
+" }}}
 
 """
 " clear cache.
@@ -153,6 +160,65 @@ function! javaimport#clear_cache() " {{{
     endif
 
     call s:FILE.rmdir(l:cachedir, 'r')
+endfunction
+" }}}
+
+"""
+" check existing cache for config.
+"
+" @param config
+""
+function! javaimport#has_cache(config) " {{{
+    return s:CACHE.filereadable(g:javaimport_config.cache_dir, a:config.path)
+endfunction
+" }}}
+
+"""
+" read candidates from cache.
+"
+" @param config
+" @return [{success}, {data}]
+""
+function! javaimport#read_cache(config) " {{{
+    let l:cachedir= g:javaimport_config.cache_dir
+
+    call s:CACHE.check_old_cache(l:cachedir, a:config.path)
+
+    if !s:CACHE.filereadable(l:cachedir, a:config.path)
+        return []
+    endif
+
+    let l:cache= eval(get(s:CACHE.readfile(l:cachedir, a:config.path), 0, '{}'))
+
+    if empty(l:cache)
+        return []
+    endif
+
+    if l:cache.meta.version !=# g:javaimport_version
+        call s:CACHE.deletefile(l:cachedir, a:config.path)
+        return []
+    endif
+
+    return l:cache.data
+endfunction
+" }}}
+
+"""
+" write items to cache.
+"
+" @param config
+" @param items
+""
+function! javaimport#write_cache(config, items) " {{{
+    let l:cachedir= g:javaimport_config.cache_dir
+
+    call s:CACHE.deletefile(l:cachedir, a:config.path)
+    call s:CACHE.writefile(l:cachedir, a:config.path, [string({
+    \   'meta': {
+    \       'version': g:javaimport_version,
+    \   },
+    \   'data': a:items,
+    \})])
 endfunction
 " }}}
 

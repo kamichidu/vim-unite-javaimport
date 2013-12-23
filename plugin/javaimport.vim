@@ -36,6 +36,8 @@ let g:loaded_javaimport= 1
 let s:save_cpo= &cpo
 set cpo&vim
 
+let g:javaimport_version= '0.01'
+
 let g:javaimport_config= get(g:, 'javaimport_config', {})
 let g:javaimport_config.cache_dir= get(g:javaimport_config, 'cache_dir', g:unite_data_directory . '/javaimport/')
 
