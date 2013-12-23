@@ -35,6 +35,7 @@ let s:V= vital#of('unite-javaimport')
 let s:FILE= s:V.import('System.File')
 let s:CACHE= s:V.import('System.Cache')
 let s:JSON= s:V.import('Web.JSON')
+let s:L= s:V.import('Data.List')
 unlet s:V
 
 """
@@ -254,6 +255,7 @@ function! javaimport#sort_import_statements() " {{{
         let l:classes= getbufline('%', l:start_lnum, l:end_lnum)
         let l:classes= filter(l:classes, 'v:val =~# ''^\s*\<import\>''')
         let l:classes= map(l:classes, 'matchstr(v:val, ''^\s*import\s\+\<\zs[^;]\+\ze'')')
+        let l:classes= s:L.uniq(l:classes)
 
         call sort(l:classes)
 
