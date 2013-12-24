@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/unite/sources/javaimport.vim
-" Last Change: 24-Dec-2013.
+" Last Change: 25-Dec-2013.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -110,17 +110,28 @@ function! s:package_name(path, tags_line)
 endfunction
 " }}}
 function! s:gather_from_jar(config) " {{{
+    let l:debug_mode= ''
+    if g:javaimport_config.debug_mode
+        let l:debug_mode= '--debug'
+    endif
     let l:cmd= join(
     \   [
-    \       'java',
-    \       '-Xbootclasspath/p:' . shellescape(a:config.path),
-    \       '-jar ' . javaimport#jar_path(),
+    \       shellescape(expand('$JAVA_HOME') . '/bin/java'),
+    \       '-Xbootclasspath/p:' . shellescape(expand(a:config.path)),
+    \       '-Xbootclasspath/a:' . shellescape(expand('$JAVA_HOME') . '/lib/tools.jar'),
+    \       '-jar ' . shellescape(javaimport#jar_path()),
     \       '--recursive',
-    \       '--target ' . shellescape(a:config.path),
+    \       '--target ' . shellescape(fnamemodify(a:config.path, ':t')),
     \       '--location platform',
+    \       l:debug_mode,
     \   ],
     \   ' '
     \)
+
+    if g:javaimport_config.debug_mode
+        echomsg l:cmd
+        return []
+    endif
 
     return map(split(vimproc#system(l:cmd), "\n"), 's:new_candidate(a:config, v:val)')
 endfunction

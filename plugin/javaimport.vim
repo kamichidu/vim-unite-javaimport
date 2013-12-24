@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        plugin/javaimport.vim
-" Last Change: 23-Dec-2013.
+" Last Change: 25-Dec-2013.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -41,6 +41,7 @@ let g:javaimport_version= '0.01'
 let g:javaimport_config= get(g:, 'javaimport_config', {})
 let g:javaimport_config.cache_dir= get(g:javaimport_config, 'cache_dir', g:unite_data_directory . '/javaimport/')
 let g:javaimport_config.preview_using= get(g:javaimport_config, 'preview_using', 'w3m')
+let g:javaimport_config.debug_mode= get(g:javaimport_config, 'debug_mode', 0)
 
 command! JavaImportClearCache call javaimport#clear_cache()
 command! JavaImportSortStatements call javaimport#sort_import_statements()

@@ -3,10 +3,14 @@ package jp.michikusa.chitose.unitejavaimport;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 
 import java.lang.reflect.Modifier;
+import java.net.URL;
+import java.net.MalformedURLException;
+import java.util.Collections;
 import java.util.concurrent.Callable;
 
 import javax.tools.DiagnosticCollector;
@@ -69,18 +73,45 @@ public class Dumper implements Callable<Iterable<CharSequence>>
 
         final Predicate<JavaFileObject> predicate;
         {
-            final String target= this.option.target();
-            final Predicate<JavaFileObject> target_only= new Predicate<JavaFileObject>(){
+            final String self_jar_path= this.selfJarPath();
+            final Predicate<JavaFileObject> exclude_self_jar= new Predicate<JavaFileObject>(){
                 @Override
                 public boolean apply(JavaFileObject o)
                 {
-                    return o.getName().startsWith(target);
+                    try
+                    {
+                        return !filename(o.toUri().toURL()).equals(self_jar_path);
+                    }
+                    catch(MalformedURLException e)
+                    {
+                        throw new RuntimeException(e);
+                    }
+                    /* return o.getName().startsWith(target); */
                     // getAccessLevel() always returns null
                     // return Modifier.PUBLIC.equals(o.getAccessLevel());
                 }
             };
 
-            predicate= target_only;
+            final String target= this.option.target();
+            final Predicate<JavaFileObject> target_only= new Predicate<JavaFileObject>(){
+                @Override
+                public boolean apply(JavaFileObject o)
+                {
+                    try
+                    {
+                        return filename(o.toUri().toURL()).contains(target);
+                    }
+                    catch(MalformedURLException e)
+                    {
+                        throw new RuntimeException(e);
+                    }
+                    /* return o.getName().startsWith(target); */
+                    // getAccessLevel() always returns null
+                    // return Modifier.PUBLIC.equals(o.getAccessLevel());
+                }
+            };
+
+            predicate= Predicates.and(exclude_self_jar, target_only);
         }
         final Function<JavaFileObject, String> function;
         {
@@ -106,10 +137,10 @@ public class Dumper implements Callable<Iterable<CharSequence>>
                 public String apply(String o)
                 {
                     return o
-                        .replaceFirst("^.*\\.jar/", "")
-                        .replaceFirst("\\.class$", "")
-                        .replace('/', '.')
-                        .replace('$', '.')
+                           .replaceFirst("^.*\\.jar/", "")
+                           .replaceFirst("\\.class$", "")
+                           .replace('/', '.')
+                           .replace('$', '.')
                     ;
                 }
             };
@@ -126,6 +157,22 @@ public class Dumper implements Callable<Iterable<CharSequence>>
             clazzes.addAll(Iterables.transform(filtered, function));
         }
         return clazzes.build();
+    }
+
+    private String filename(URL url)
+    {
+        this.option.debug(url, "url");
+
+        final String path= this.option.debug(url.getPath(), "path");
+
+        return this.option.debug(path.substring(path.indexOf(':') + 1, path.indexOf('!')), "result");
+    }
+
+    private String selfJarPath()
+    {
+        final URL resource_url= this.getClass().getResource("/" + this.getClass().getName().replace('.', '/') + ".class");
+
+        return this.filename(resource_url);
     }
 
     private final ProcessOption option;

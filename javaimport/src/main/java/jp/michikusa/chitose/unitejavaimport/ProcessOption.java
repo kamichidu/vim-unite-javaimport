@@ -56,6 +56,24 @@ public class ProcessOption
         return this.target;
     }
 
+    public <T> T debug(T ref)
+    {
+        if(this.debug)
+        {
+            System.err.println(ref);
+        }
+        return ref;
+    }
+
+    public <T> T debug(T ref, String message)
+    {
+        if(this.debug)
+        {
+            System.err.println(message + ": " + ref);
+        }
+        return ref;
+    }
+
     @Option(name= "-h", aliases= "--help", usage= "show this message")
     private boolean help_flag= false;
 
@@ -70,5 +88,8 @@ public class ProcessOption
 
     @Option(name= "-t", aliases= "--target", usage= "process target classpath")
     private String target= "";
+
+    @Option(name= "--debug", usage= "debug mode")
+    private boolean debug= false;
 }
 
