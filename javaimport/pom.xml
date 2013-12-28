@@ -79,5 +79,12 @@
             <version>16.0-rc1</version>
             <scope>compile</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.bcel</groupId>
+            <artifactId>bcel</artifactId>
+            <version>5.2</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 </project>

@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/unite/sources/javaimport.vim
-" Last Change: 25-Dec-2013.
+" Last Change: 28-Dec-2013.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -116,13 +116,10 @@ function! s:gather_from_jar(config) " {{{
     endif
     let l:cmd= join(
     \   [
-    \       shellescape(expand('$JAVA_HOME') . '/bin/java'),
-    \       '-Xbootclasspath/p:' . shellescape(expand(a:config.path)),
-    \       '-Xbootclasspath/a:' . shellescape(expand('$JAVA_HOME') . '/lib/tools.jar'),
-    \       '-jar ' . shellescape(javaimport#jar_path()),
-    \       '--recursive',
-    \       '--target ' . shellescape(fnamemodify(a:config.path, ':t')),
-    \       '--location platform',
+    \       expand('$JAVA_HOME') . '/bin/java',
+    \       '-jar', javaimport#jar_path(),
+    \       '--recurse',
+    \       '--path', fnamemodify(a:config.path, ':p'),
     \       l:debug_mode,
     \   ],
     \   ' '
@@ -130,7 +127,6 @@ function! s:gather_from_jar(config) " {{{
 
     if g:javaimport_config.debug_mode
         echomsg l:cmd
-        return []
     endif
 
     return map(split(vimproc#system(l:cmd), "\n"), 's:new_candidate(a:config, v:val)')
@@ -170,7 +166,7 @@ function! s:source.gather_candidates(args, context) " {{{
 
     let l:result= []
     for l:config in l:configs
-        if javaimport#has_cache(l:config)
+        if javaimport#has_cache(l:config) && !g:javaimport_config.debug_mode
             call add(l:result, javaimport#read_cache(l:config))
         else
             let l:items= s:gather_from_{l:config.type}(l:config)
