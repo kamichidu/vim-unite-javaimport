@@ -2,7 +2,7 @@
 
 Version: 0.01
 Author:  kamichidu <c.kamunagi@gmail.com>
-Last Change: 24-Dec-2013.
+Last Change: 29-Dec-2013.
 License: The MIT License (MIT)
 
 Copyright (c) 2013 kamichidu
@@ -31,6 +31,7 @@ Introduction                                   |unite-javaimport-introduction|
 Install                                             |unite-javaimport-install|
 Interface                                         |unite-javaimport-interface|
 How to Use                                         |unite-javaimport-howtouse|
+Acknowledgement                             |unite-javaimport-acknowledgement|
 
 ==============================================================================
 INTRODUCTION                                   *unite-javaimport-introduction*
@@ -91,7 +92,22 @@ an example for .javaimport
         'javadoc': 'javadoc uri for classpath',
     },
 <
+==============================================================================
+ACKNOWLEDGEMENT                             *unite-javaimport-acknowledgement*
+
+|unite-javaimport| use some libraries below.
+
+    * Guava (http://code.google.com/p/guava-libraries/)
+
+        Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+
+    * BCEL (http://commons.apache.org/proper/commons-bcel/)
+
+        Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+
+    * args4j (http://args4j.kohsuke.org/)
+
+        MIT License (http://opensource.org/licenses/mit-license.php)
 
 ==============================================================================
 vim:tw=78:ts=4:ft=help:norl:fen:
-
