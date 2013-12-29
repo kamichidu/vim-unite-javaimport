@@ -42,7 +42,7 @@ function! s:Manager.open(bufname, ...)
     let Opener = eval(Opener[1 :])
   endwhile
 
-  let loaded = s:open(a:bufname, Opener)
+  let loaded = s:B.open(a:bufname, Opener)
   let new_bufnr = bufnr('%')
   let self._bufnrs[new_bufnr] = a:bufname
 
@@ -71,18 +71,18 @@ function! s:Manager.opened(bufname)
 endfunction
 
 function! s:Manager.config(...)
-  if a:0 == 2
-    let self._config[a:1] = a:2
-  elseif a:0 == 1
-    if s:V.is_dict(a:1)
-      call extend(self._config, a:1)
-    else
-      return get(self._config, a:1)
-    endif
-  elseif a:0 == 0
+  if a:0 == 0
     return self._config
+  elseif a:0 == 1 && s:V.is_dict(a:1)
+    call extend(self._config, a:1)
+    return self
+  elseif a:0 == 1
+    return get(self._config, a:1)
+  elseif a:0 == 2
+    let self._config[a:1] = a:2
+    return self
   endif
-  return self
+  throw new 'Vital.Vim.BufferManager: invalid argument for config()'
 endfunction
 
 function! s:Manager.user_config(config)
@@ -140,7 +140,9 @@ function! s:Manager.move(...)
 endfunction
 
 function! s:Manager.do(cmd)
-  let cmd = a:cmd =~ '%s' ? a:cmd : a:cmd . ' %s'
+  let cmd =
+        \ a:cmd =~ '%s' ? a:cmd
+        \               : a:cmd . ' %s'
   for bufnr in self.list()
     execute substitute(cmd, '%s', bufnr, '')
   endfor
@@ -153,31 +155,8 @@ function! s:new(...)
 endfunction
 
 function! s:open(buffer, opener)
-  let save_wildignore = &wildignore
-  let &wildignore = ''
-  try
-    if s:V.is_funcref(a:opener)
-      let loaded = !bufloaded(a:buffer)
-      call a:opener(a:buffer)
-    elseif a:buffer is 0 || a:buffer is ''
-      let loaded = 1
-      silent execute a:opener
-      enew
-    else
-      let loaded = !bufloaded(a:buffer)
-      if s:V.is_string(a:buffer)
-        execute a:opener '`=a:buffer`'
-      elseif s:V.is_number(a:buffer)
-        silent execute a:opener
-        execute a:buffer 'buffer'
-      else
-        throw 'vital: Vim.Buffer.Manager: Unknown opener type.'
-      endif
-    endif
-  finally
-    let &wildignore = save_wildignore
-  endtry
-  return loaded
+  call s:_deprecated("open")
+  return s:B.open(a:buffer, a:opener)
 endfunction
 
 function! s:_deprecated(fname)

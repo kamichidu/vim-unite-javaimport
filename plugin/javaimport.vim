@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        plugin/javaimport.vim
-" Last Change: 25-Dec-2013.
+" Last Change: 29-Dec-2013.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -50,4 +50,3 @@ let &cpo= s:save_cpo
 unlet s:save_cpo
 
 " vim:foldenable:foldmethod=marker
-

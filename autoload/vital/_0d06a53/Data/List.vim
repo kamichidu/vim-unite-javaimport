@@ -63,7 +63,7 @@ function! s:concat(list)
   return list
 endfunction
 
-" Flattens a list.
+" Take each elements from lists to a new list.
 function! s:flatten(list, ...)
   let limit = a:0 > 0 ? a:1 : -1
   let list = []
@@ -72,11 +72,10 @@ function! s:flatten(list, ...)
   endif
   let limit -= 1
   for Value in a:list
-    if type(Value) == type([])
-      let list += s:flatten(Value, limit)
-    else
-      call add(list, Value)
-    endif
+    let list +=
+          \ type(Value) == type([]) ?
+          \   s:flatten(Value, limit) :
+          \   [Value]
     unlet! Value
   endfor
   return list

@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/unite/sources/javaimport.vim
-" Last Change: 28-Dec-2013.
+" Last Change: 29-Dec-2013.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -36,6 +36,7 @@ let s:L= s:V.import('Data.List')
 let s:H= s:V.import('Web.HTTP')
 let s:X= s:V.import('Web.HTML')
 let s:S= s:V.import('Data.String')
+let s:P= s:V.import('Process')
 unlet s:V
 
 function! s:gather_from_javadoc(config) " {{{
@@ -57,56 +58,41 @@ function! s:to_class_name_for_javadoc(li_of_class)
 endfunction
 " }}}
 function! s:gather_from_directory(config) " {{{
-    " TODO
-    if filereadable('./tags')
-        call delete('./tags')
-    endif
-    " ctags --language-force=java --langmap=Java:.java --java-kinds=cgi --recurse=yes
-    call system('ctags --append=yes --language-force=java --langmap=Java:.java --java-kinds=cgi --recurse=yes '.a:config.path)
-
-    " collect class, interface and enum name.
-    let l:result= map(
-    \   s:filter_tags_line(readfile('tags')), 
-    \   's:type_from_tags_line(a:config.path, v:val)'
+    let l:fullpath= fnamemodify(a:config.path, ':p')
+    let l:cmd= join(
+    \   [
+    \       'ctags',
+    \       '-f -',
+    \       '--language-force=java',
+    \       '--langmap=Java:.java',
+    \       '--java-kinds=cgi',
+    \       '--recurse=yes',
+    \       '--extra=q',
+    \       l:fullpath,
+    \   ],
+    \   ' '
     \)
-    if filereadable('./tags')
-        call delete('./tags')
-    endif
-    return map(l:result, 's:new_candidate(a:config, v:val)')
-endfunction
+    let l:outputs= split(s:P.system(l:cmd), "\n")
 
-function! s:filter_tags_line(tags_lines)
-    let l:predicates= [
-    \   'v:val !~# "^!"', 
-    \   'v:val =~# "\\/^\\<\\(public\\|protected\\)\\>"', 
-    \]
+    " filter if non-public
+    let l:tags= map(l:outputs, 'split(v:val, "\t")')
+    let l:tags= map(l:tags, '{"tag": v:val[0], "filename": v:val[1], "declaration": v:val[2]}')
+    let l:tags= filter(l:tags, 'v:val.declaration =~# ''\<public\>''')
 
-    let l:result= deepcopy(a:tags_lines)
-    for l:predicate in l:predicates
-        call filter(l:result, l:predicate)
+    " make filename to package
+    for l:tag in l:tags
+        let l:package= l:tag.filename
+        " remove path to dir
+        let l:package= substitute(l:package, l:fullpath, '', '')
+        " remove base filename
+        let l:package= substitute(l:package, '[/\\]\w\+\.java$', '', '')
+        " replace / to .
+        let l:package= substitute(l:package, '[/\\]\+', '.', 'g')
+
+        let l:tag.package= l:package
     endfor
 
-    return l:result
-endfunction
-
-function! s:type_from_tags_line(path, tags_line)
-    let l:name= substitute(a:tags_line, '\s\+.*$', '', '')
-    let l:package= s:package_name(a:path, a:tags_line)
-
-    return join([l:package, l:name], '.')
-endfunction
-
-function! s:package_name(path, tags_line)
-    let l:path= split(a:tags_line, '\s\+')[1]
-
-    " ファイル名削除
-    let l:path= substitute(l:path, '/[^/]\+\.java$', '', '')
-    " ^src/ を削除
-    let l:path= s:S.replace_first(l:path, a:path, '')
-    " / -> .
-    let l:path= substitute(l:path, '/', '.', 'g')
-
-    return l:path
+    return map(map(l:tags, 'v:val.package . "." . v:val.tag'), 's:new_candidate(a:config, v:val)')
 endfunction
 " }}}
 function! s:gather_from_jar(config) " {{{

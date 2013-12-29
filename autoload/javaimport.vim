@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/javaimport.vim
-" Last Change: 23-Dec-2013.
+" Last Change: 29-Dec-2013.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -57,7 +57,11 @@ function! javaimport#import_config() " {{{
         return []
     endif
 
-    let l:sources= s:JSON.decode('[' . join(readfile('.javaimport'), "\n") . ']')
+    let l:lines= readfile('.javaimport')
+    " ignore comment lines
+    call filter(l:lines, 'v:val !~# ''^\s*#''')
+
+    let l:sources= s:JSON.decode('[' . join(l:lines, "\n") . ']')
     let l:result= []
 
     for l:source in l:sources
