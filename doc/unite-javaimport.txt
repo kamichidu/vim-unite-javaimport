@@ -2,7 +2,7 @@
 
 Version: 0.01
 Author:  kamichidu <c.kamunagi@gmail.com>
-Last Change: 29-Dec-2013.
+Last Change: 30-Dec-2013.
 License: The MIT License (MIT)
 
 Copyright (c) 2013 kamichidu
@@ -43,19 +43,34 @@ TODO
 DEPENDENCIES ~
 
     * https://github.com/Shougo/unite.vim (must)
-    * Java Runtime Environment (JRE) 1.6 or higher (must)
+    * Java Runtime Environment (JRE) 1.6 or above (must)
     * https://github.com/yuratomo/w3m.vim (to preview javadoc)
     * Exuberant Ctags (must)
 
 ==============================================================================
 INSTALL                                             *unite-javaimport-install*
 
+first you have to install
+
+    1. Java Runtime Environment 1.6 or above
+    1. Exuberant Ctags 5.8 or above
+
+second you install this plugin. if you use |neobundle|, you can install this
+plugin easily.
 >
+    " simple instalation
     NeoBundle 'KamunagiChiduru/unite-javaimport', {
     \   'depends': ['Shougo/unite.vim'],
     \}
-<
 
+    " fully instalation
+    NeoBundle 'KamunagiChiduru/unite-javaimport', {
+    \   'depends': [
+    \       'Shougo/unite.vim',
+    \       'yuratomo/w3m.vim',
+    \   ],
+    \}
+<
 ==============================================================================
 INTERFACE                                         *unite-javaimport-interface*
 
@@ -66,6 +81,13 @@ UNITE ~
 >
     :Unite javaimport
 <
+    |unite-javaimport| can accept some arguments.
+
+        ! or show_class
+            show all classes.
+
+        package
+            a package name for filtering to gather classes.
 
 COMMAND ~
 
@@ -81,17 +103,31 @@ HOW TO USE                                         *unite-javaimport-howtouse*
 you have to write .javaimport to your current directory (project root
 dictionary).
 
-an example for .javaimport
+an example for .javaimport below.
 >
+    # line comment
     {
         'path':    'path to classpath',
-        'javadoc': 'javadoc uri for classpath',
     },
     {
         'path':    'path to classpath',
         'javadoc': 'javadoc uri for classpath',
     },
 <
+this is like a JSON. for each dictionary must have "path" and may have
+"javadoc". details below.
+
+    "path" (required)
+        possible values are
+            - src directory path
+            - jar file path
+            - zip file path
+            - javadoc url
+        a value accepts absolute and relative path.
+
+    "javadoc" (optional)
+        javadoc url
+
 ==============================================================================
 ACKNOWLEDGEMENT                             *unite-javaimport-acknowledgement*
 
