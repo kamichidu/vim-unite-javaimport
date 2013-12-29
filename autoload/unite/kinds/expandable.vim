@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/unite/kinds/expandable.vim
-" Last Change: 24-Dec-2013.
+" Last Change: 30-Dec-2013.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -48,7 +48,15 @@ let s:kind.action_table.expand= {
 \   'is_start': 1,
 \}
 function! s:kind.action_table.expand.func(candidate) " {{{
-    call unite#start_script([a:candidate.source], {'source__filter': a:candidate.action__filter})
+    call unite#start_script(
+    \   [
+    \       [
+    \           a:candidate.source,
+    \           'show_class=1',
+    \           'package=' . a:candidate.action__package,
+    \       ],
+    \   ],
+    \)
 endfunction
 " }}}
 

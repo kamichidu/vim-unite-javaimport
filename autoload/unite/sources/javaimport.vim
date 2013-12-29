@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/unite/sources/javaimport.vim
-" Last Change: 29-Dec-2013.
+" Last Change: 30-Dec-2013.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -150,47 +150,58 @@ endfunction
 function! s:source.gather_candidates(args, context) " {{{
     let l:configs= javaimport#import_config()
 
-    let l:result= []
+    let l:classes= []
     for l:config in l:configs
         if javaimport#has_cache(l:config) && !g:javaimport_config.debug_mode
-            call add(l:result, javaimport#read_cache(l:config))
+            call add(l:classes, javaimport#read_cache(l:config))
         else
             let l:items= s:gather_from_{l:config.type}(l:config)
 
             call javaimport#write_cache(l:config, l:items)
 
-            call add(l:result, l:items)
+            call add(l:classes, l:items)
         endif
     endfor
 
-    let l:result= s:L.flatten(l:result)
+    let l:classes= s:L.flatten(l:classes)
+
+    let l:args= javaimport#build_args(a:args)
 
     " show classes only called by expandable
     " otherwise only packages (for speed, memory, anti stop the world)
-    if !has_key(a:context, 'source__filter')
-        let l:packages= map(l:result, 'matchstr(v:val.canonical_name, ''\C[a-z][a-z0-9_]*\(\.[a-z][a-z0-9_]*\)*'')')
+    if has_key(l:args, 'show_class') && l:args.show_class || has_key(l:args, '!')
+        let l:package_regex= get(l:args, 'package', '')
+
+        if !empty(l:package_regex)
+            let l:package_regex= substitute(l:package_regex, '\.', '\\.', 'g')
+
+            " filter by package name depends on naming convention
+            call filter(l:classes, 'v:val.canonical_name =~# ''^\C' . l:package_regex . '\.[A-Z]''')
+        endif
+
+        return map(l:classes,
+        \   '{' .
+        \   '   "word":   v:val.word,' .
+        \   '   "kind":   "javatype",' .
+        \   '   "source": "javaimport",' .
+        \   '   "action__canonical_name": v:val.canonical_name,' .
+        \   '   "action__javadoc_url":    v:val.javadoc_url,' .
+        \   '}'
+        \)
+    else
+        let l:packages= map(l:classes, 'matchstr(v:val.canonical_name, ''\C[a-z][a-z0-9_]*\%(\.[a-z][a-z0-9_]*\)*'')')
 
         let l:packages= s:L.uniq(l:packages)
 
-        return map(l:packages, '{' .
-        \   '   "word": v:val,' .
-        \   '   "kind": "expandable",' .
+        return map(l:packages,
+        \   '{' .
+        \   '   "word":   v:val,' .
+        \   '   "kind":   "expandable",' .
         \   '   "source": self.name,' .
-        \   '   "action__filter": v:val,' .
-        \'}'
+        \   '   "action__package": v:val,' .
+        \   '}'
         \)
     endif
-
-    call filter(l:result, 'v:val.canonical_name =~# ''^' . a:context.source__filter . '''')
-
-    return map(l:result, '{' .
-    \   '   "word": v:val.word,' .
-    \   '   "kind": "javatype",' .
-    \   '   "source": "javaimport",' .
-    \   '   "action__canonical_name": v:val.canonical_name,' .
-    \   '   "action__javadoc_url": v:val.javadoc_url,' .
-    \   '}'
-    \)
 endfunction
 " }}}
 
@@ -198,4 +209,3 @@ let &cpo= s:save_cpo
 unlet s:save_cpo
 
 " vim:foldenable:foldmethod=marker
-

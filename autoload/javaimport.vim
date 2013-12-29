@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/javaimport.vim
-" Last Change: 29-Dec-2013.
+" Last Change: 30-Dec-2013.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -301,6 +301,26 @@ function! javaimport#preview(url)
     else
         throw 'unite-javaimport: illegal configuration (g:javaimport_config.preview_using): ' . l:using
     endif
+endfunction
+
+"""
+" ['hoge=fuga', 'fuga=1'] => {'hoge': 'fuga', 'fuga': 1}
+"
+" @param args unite's args
+""
+function! javaimport#build_args(args)
+    let l:result= {}
+
+    for l:arg in a:args
+        let l:pair= split(l:arg, '=')
+
+        let l:key= l:pair[0]
+        let l:value= get(l:pair, 1, '')
+
+        let l:result[l:key]= l:value
+    endfor
+
+    return l:result
 endfunction
 
 let &cpo= s:save_cpo
