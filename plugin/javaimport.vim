@@ -47,6 +47,7 @@ let g:javaimport_config.debug_mode= get(g:javaimport_config, 'debug_mode', 0)
 
 command! JavaImportClearCache call javaimport#clear_cache()
 command! JavaImportSortStatements call javaimport#sort_import_statements()
+command! JavaImportRemoveUnnecessaries call javaimport#remove_unnecesarries()
 
 nmap <silent><Plug>(javaimport-quickimport) :<C-U>call javaimport#quickimport(expand('<cword>'))<CR>
 

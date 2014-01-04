@@ -328,6 +328,47 @@ function! javaimport#quickimport(simple_name) " {{{
 endfunction
 " }}}
 
+function! javaimport#remove_unnecesarries()
+    let l:save_pos= getpos('.')
+    try
+        " gather already existed import statements
+        call setpos('.', [0, 1, 1, 0])
+        let l:start_lnum= search('^\s*\<import\>', 'cn')
+
+        call setpos('.', [0, line('$'), 1, 0])
+        let l:end_lnum= search('^\s*\<import\>', 'cnb')
+
+        if [l:start_lnum, l:end_lnum] ==# [0, 0]
+            return
+        endif
+
+        let l:classes= getbufline('%', l:start_lnum, l:end_lnum)
+        let l:classes= filter(l:classes, 'v:val =~# ''^\s*\<import\>''')
+        let l:classes= map(l:classes, 'matchstr(v:val, ''^\s*import\s\+\<\zs[^;]\+\ze'')')
+        let l:classes= s:L.uniq(l:classes)
+
+        " delete old import statements
+        execute l:start_lnum . ',' . l:end_lnum . 'delete _'
+
+        " find unnecessary statements
+        let l:statements= []
+        for l:class in l:classes
+            let l:simple_name= matchstr(l:class, '\.\zs\w\+$')
+
+            " move cursor to 1st line
+            call setpos('.', ['%', 1, 1, 0])
+            if search('\C\<' . l:simple_name . '\>', 'nW') !=# 0
+                call add(l:statements, 'import ' . l:class . ';')
+            endif
+        endfor
+
+        " append new import statements
+        call append(l:start_lnum - 1, l:statements)
+    finally
+        call setpos('.', l:save_pos)
+    endtry
+endfunction
+
 let &cpo= s:save_cpo
 unlet s:save_cpo
 
