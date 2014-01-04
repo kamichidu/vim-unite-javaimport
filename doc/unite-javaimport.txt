@@ -1,8 +1,8 @@
 *unite-javaimport.txt*
 
-Version: 0.01
+Version: 0.02
 Author:  kamichidu <c.kamunagi@gmail.com>
-Last Change: 30-Dec-2013.
+Last Change: 04-Jan-2014.
 License: The MIT License (MIT)
 
 Copyright (c) 2013 kamichidu
@@ -89,6 +89,10 @@ UNITE ~
         package
             a package name for filtering to gather classes.
 
+        only
+            a class name for filtering to gather classes.
+            will gather only passed class name with different packages only.
+
 COMMAND ~
 
     :JavaImportClearCache                              *:JavaImportClearCache*
@@ -96,6 +100,34 @@ COMMAND ~
 
     :JavaImportSortStatements                      *:JavaImportSortStatements*
         sort import statements on current buffer.
+
+    :JavaImportRemoveUnnecessaries            *:JavaImportRemoveUnnecessaries*
+        remove unnecessary import statements from current buffer.
+
+MAPPING~
+
+    <Plug>(javaimport-quickimport)            *<Plug>(javaimport-quickimport)*
+        invoke |unite-javaimport| with "only" argument.
+
+VARIABLE~
+
+    g:javaimport_use_default_mapping        *g:javaimport_use_default_mapping*
+        this variable type is a |Number|. if 1 has set |unite-javaimport| will
+        set some mappings.
+
+    g:javaimport_config                                  *g:javaimport_config*
+        this variable type is a |Dictionary|. valid keys and effects are
+        written below.
+
+        cache_dir
+            associated value type is a |String| and describes a directory will
+            be cached some datas.
+
+        preview_using
+            associated value type is a |String| and must be a one of {w3m,
+            lynx}. must be installed |w3m.vim| only if "w3m" was set, or
+            "lynx" was set you got an error (since this feature is
+            unimplemented yet).
 
 ==============================================================================
 HOW TO USE                                         *unite-javaimport-howtouse*

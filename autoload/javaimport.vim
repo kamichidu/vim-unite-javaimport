@@ -149,7 +149,9 @@ endfunction
 " @return full path
 ""
 function! javaimport#jar_path() " {{{
-    return globpath(&runtimepath, 'autoload/unite-javaimport-0.01-jar-with-dependencies.jar')
+    let l:jarname= 'unite-javaimport-' . g:javaimport_version . '-jar-with-dependencies.jar'
+
+    return globpath(&runtimepath, 'autoload/' . l:jarname)
 endfunction
 " }}}
 
