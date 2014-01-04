@@ -108,6 +108,7 @@ MAPPING~
 
     <Plug>(javaimport-quickimport)            *<Plug>(javaimport-quickimport)*
         invoke |unite-javaimport| with "only" argument.
+        (default key map: <Leader>I)
 
 VARIABLE~
 
