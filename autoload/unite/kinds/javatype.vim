@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/unite/kinds/javatype.vim
-" Last Change: 23-Dec-2013.
+" Last Change: 04-Jan-2014.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -48,45 +48,14 @@ let s:kind.action_table.import= {
 \}
 function! s:kind.action_table.import.func(candidates) " {{{
     let l:save_cursorpos= getpos('.')
-    let l:canonical_name= a:candidates[0].action__canonical_name
+    try
+        let l:canonical_names= map(a:candidates, 'v:val.action__canonical_name')
 
-    if s:already_exists(l:canonical_name)
-        return
-    endif
-
-    call append(s:appendable_lnum(), printf('import %s;', l:canonical_name))
-
-    call javaimport#sort_import_statements()
-
-    call setpos('.', javaimport#each('v:a + v:b', l:save_cursorpos, [0, 1, 0, 0]))
-endfunction
-
-function! s:already_exists(class_name)
-    let l:imports= filter(getbufline('%', 1, '$'), 'v:val =~# "^\\s*\\<import\\>"')
-    let l:same_imports= filter(l:imports, 'match(v:val, "'.a:class_name.'") >= 0')
-
-    return !empty(l:same_imports)
-endfunction
-
-function! s:appendable_lnum()
-    call setpos('.', [0, 1, 1, 0])
-
-    let l:import_lnum= search('\<import\>', 'cn')
-    if l:import_lnum
-        return l:import_lnum
-    endif
-
-    let l:package_lnum= search('\<package\>', 'cn')
-    if l:package_lnum
-        return l:package_lnum
-    endif
-
-    let l:declaration_lnum= search('\<\(class\|@\?interface\|enum\)\>', 'cn')
-    if l:declaration_lnum
-        return l:declaration_lnum - 1
-    endif
-
-    return 1
+        call javaimport#add_import_statements(l:canonical_names)
+        call javaimport#sort_import_statements()
+    finally
+        call setpos('.', javaimport#each('v:a + v:b', l:save_cursorpos, [0, 1, 0, 0]))
+    endtry
 endfunction
 " }}}
 let s:kind.action_table.preview= {

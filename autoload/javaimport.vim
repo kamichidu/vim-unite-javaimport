@@ -249,20 +249,13 @@ function! javaimport#sort_import_statements() " {{{
     let l:save_pos= getpos('.')
     try
         " gather already existed import statements
-        call setpos('.', [0, 1, 1, 0])
-        let l:start_lnum= search('^\s*\<import\>', 'cn')
+        let l:region= javaimport#region_of_import_statements()
 
-        call setpos('.', [0, line('$'), 1, 0])
-        let l:end_lnum= search('^\s*\<import\>', 'cnb')
-
-        if [l:start_lnum, l:end_lnum] ==# [0, 0]
+        if l:region ==# [0, 0]
             return
         endif
 
-        let l:classes= getbufline('%', l:start_lnum, l:end_lnum)
-        let l:classes= filter(l:classes, 'v:val =~# ''^\s*\<import\>''')
-        let l:classes= map(l:classes, 'matchstr(v:val, ''^\s*import\s\+\<\zs[^;]\+\ze'')')
-        let l:classes= s:L.uniq(l:classes)
+        let l:classes= javaimport#imported_classes()
 
         call sort(l:classes)
 
@@ -281,16 +274,16 @@ function! javaimport#sort_import_statements() " {{{
             let l:last_domain= l:domain
         endfor
 
-        execute l:start_lnum . ',' . l:end_lnum . 'delete _'
+        execute l:region[0] . ',' . l:region[1] . 'delete _'
 
-        call append(l:start_lnum - 1, l:statements)
+        call append(l:region[0] - 1, l:statements)
     finally
         call setpos('.', l:save_pos)
     endtry
 endfunction
 " }}}
 
-function! javaimport#preview(url)
+function! javaimport#preview(url) " {{{
     " call s:BM.open('javadoc preview', {'range': 'current'})
 
     " setlocal bufhidden=hide buftype=nofile noswapfile nobuflisted readonly
@@ -304,13 +297,14 @@ function! javaimport#preview(url)
         throw 'unite-javaimport: illegal configuration (g:javaimport_config.preview_using): ' . l:using
     endif
 endfunction
+" }}}
 
 """
 " ['hoge=fuga', 'fuga=1'] => {'hoge': 'fuga', 'fuga': 1}
 "
 " @param args unite's args
 ""
-function! javaimport#build_args(args)
+function! javaimport#build_args(args) " {{{
     let l:result= {}
 
     for l:arg in a:args
@@ -324,33 +318,27 @@ function! javaimport#build_args(args)
 
     return l:result
 endfunction
+" }}}
 
 function! javaimport#quickimport(simple_name) " {{{
     call unite#start([['javaimport', 'only=' . a:simple_name]])
 endfunction
 " }}}
 
-function! javaimport#remove_unnecesarries()
+function! javaimport#remove_unnecesarries() " {{{
     let l:save_pos= getpos('.')
     try
         " gather already existed import statements
-        call setpos('.', [0, 1, 1, 0])
-        let l:start_lnum= search('^\s*\<import\>', 'cn')
+        let l:region= javaimport#region_of_import_statements()
 
-        call setpos('.', [0, line('$'), 1, 0])
-        let l:end_lnum= search('^\s*\<import\>', 'cnb')
-
-        if [l:start_lnum, l:end_lnum] ==# [0, 0]
+        if l:region ==# [0, 0]
             return
         endif
 
-        let l:classes= getbufline('%', l:start_lnum, l:end_lnum)
-        let l:classes= filter(l:classes, 'v:val =~# ''^\s*\<import\>''')
-        let l:classes= map(l:classes, 'matchstr(v:val, ''^\s*import\s\+\<\zs[^;]\+\ze'')')
-        let l:classes= s:L.uniq(l:classes)
+        let l:classes= javaimport#imported_classes()
 
         " delete old import statements
-        execute l:start_lnum . ',' . l:end_lnum . 'delete _'
+        execute l:region[0] . ',' . l:region[1] . 'delete _'
 
         " find unnecessary statements
         let l:statements= []
@@ -365,11 +353,98 @@ function! javaimport#remove_unnecesarries()
         endfor
 
         " append new import statements
-        call append(l:start_lnum - 1, l:statements)
+        call append(l:region[0] - 1, l:statements)
     finally
         call setpos('.', l:save_pos)
     endtry
 endfunction
+" }}}
+
+function! javaimport#add_import_statements(classnames)
+    let l:save_cursorpos= getpos('.')
+    try
+        let l:imported_classes= javaimport#imported_classes()
+        let l:statements= []
+
+        for l:classname in s:L.uniq(a:classnames)
+            if !s:L.has(l:imported_classes, l:classname)
+                call add(l:statements, printf('import %s;', l:classname))
+            endif
+        endfor
+
+        if empty(l:statements)
+            return
+        endif
+
+        " find lnum to be added
+        let l:region= javaimport#region_of_import_statements()
+        let l:added_lnum= 0
+        if l:region !=# [0, 0]
+            " 1st lnum of existing imports
+            let l:added_lnum= l:region[0]
+        else
+            " find center of "package decl" and "class decl" if not exist imports
+            call setpos('.', [0, 1, 1, 0])
+            let l:package_decl_lnum= search('^\s*package\>', 'cnW')
+
+            if l:package_decl_lnum !=# 0
+                let l:added_lnum= l:package_decl_lnum + 1
+            endif
+        endif
+
+        call append(l:added_lnum, l:statements)
+    finally
+        call setpos('.', javaimport#each('v:a + v:b', l:save_cursorpos, [0, 1, 0, 0]))
+    endtry
+endfunction
+
+"""
+" get some imported classnames (canonical names) from current buffer.
+"
+" @return list of string
+""
+function! javaimport#imported_classes() " {{{
+    let l:save_pos= getpos('.')
+    try
+        let l:region= javaimport#region_of_import_statements()
+
+        if l:region ==# [0, 0]
+            return []
+        endif
+
+        let l:classes= getbufline('%', l:region[0], l:region[1])
+        let l:classes= filter(l:classes, 'v:val =~# ''^\s*\<import\>''')
+        let l:classes= map(l:classes, 'matchstr(v:val, ''^\s*import\s\+\<\zs[^;]\+\ze'')')
+        let l:classes= s:L.uniq(l:classes)
+
+        return l:classes
+    finally
+        call setpos('.', l:save_pos)
+    endtry
+endfunction
+" }}}
+
+"""
+" get a region of import statements.
+" return [0, 0] if not found any import statement.
+"
+" @return tuple of [lnum, lnum]
+""
+function! javaimport#region_of_import_statements() " {{{
+    let l:save_pos= getpos('.')
+    try
+        call setpos('.', [0, 1, 1, 0])
+        let l:start_lnum= search('^\s*\<import\>', 'cn')
+
+        call setpos('.', [0, line('$'), 1, 0])
+        let l:end_lnum= search('^\s*\<import\>', 'cnb')
+
+        return [l:start_lnum, l:end_lnum]
+    finally
+        call setpos('.', l:save_pos)
+    endtry
+endfunction
+" }}}
 
 let &cpo= s:save_cpo
 unlet s:save_cpo
