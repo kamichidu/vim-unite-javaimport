@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        plugin/javaimport.vim
-" Last Change: 29-Dec-2013.
+" Last Change: 04-Jan-2014.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -38,6 +38,8 @@ set cpo&vim
 
 let g:javaimport_version= '0.01'
 
+let g:javaimport_use_default_mapping= 1
+
 let g:javaimport_config= get(g:, 'javaimport_config', {})
 let g:javaimport_config.cache_dir= get(g:javaimport_config, 'cache_dir', g:unite_data_directory . '/javaimport/')
 let g:javaimport_config.preview_using= get(g:javaimport_config, 'preview_using', 'w3m')
@@ -45,6 +47,12 @@ let g:javaimport_config.debug_mode= get(g:javaimport_config, 'debug_mode', 0)
 
 command! JavaImportClearCache call javaimport#clear_cache()
 command! JavaImportSortStatements call javaimport#sort_import_statements()
+
+nmap <silent><Plug>(javaimport-quickimport) :<C-U>call javaimport#quickimport(expand('<cword>'))<CR>
+
+if g:javaimport_use_default_mapping
+    nmap <Leader>I <Plug>(javaimport-quickimport)
+endif
 
 let &cpo= s:save_cpo
 unlet s:save_cpo

@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/javaimport.vim
-" Last Change: 30-Dec-2013.
+" Last Change: 04-Jan-2014.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -322,6 +322,11 @@ function! javaimport#build_args(args)
 
     return l:result
 endfunction
+
+function! javaimport#quickimport(simple_name) " {{{
+    call unite#start([['javaimport', 'only=' . a:simple_name]])
+endfunction
+" }}}
 
 let &cpo= s:save_cpo
 unlet s:save_cpo

@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/unite/sources/javaimport.vim
-" Last Change: 30-Dec-2013.
+" Last Change: 04-Jan-2014.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -178,6 +178,20 @@ function! s:source.gather_candidates(args, context) " {{{
             " filter by package name depends on naming convention
             call filter(l:classes, 'v:val.canonical_name =~# ''^\C' . l:package_regex . '\.[A-Z]''')
         endif
+
+        return map(l:classes,
+        \   '{' .
+        \   '   "word":   v:val.word,' .
+        \   '   "kind":   "javatype",' .
+        \   '   "source": "javaimport",' .
+        \   '   "action__canonical_name": v:val.canonical_name,' .
+        \   '   "action__javadoc_url":    v:val.javadoc_url,' .
+        \   '}'
+        \)
+    elseif has_key(l:args, 'only')
+        let l:simple_name= l:args.only
+
+        call filter(l:classes, 'v:val.canonical_name =~# ''\C\.'' . l:simple_name . ''$''')
 
         return map(l:classes,
         \   '{' .
