@@ -283,6 +283,11 @@ function! javaimport#sort_import_statements() " {{{
 endfunction
 " }}}
 
+"""
+" show javadoc by url on the new buffer.
+"
+" @param url javadoc url
+""
 function! javaimport#preview(url) " {{{
     " call s:BM.open('javadoc preview', {'range': 'current'})
 
@@ -339,11 +344,19 @@ function! javaimport#build_args(args, coerces) " {{{
 endfunction
 " }}}
 
+"""
+" start unite-javaimport by simple_name to import quickly.
+"
+" @param simple_name simple classname (aka. class name without package name)
+""
 function! javaimport#quickimport(simple_name) " {{{
     call unite#start([['javaimport', 'only=' . a:simple_name]])
 endfunction
 " }}}
 
+"""
+" remove unnecessary import statements from current buffer.
+""
 function! javaimport#remove_unnecesarries() " {{{
     let l:save_pos= getpos('.')
     try
@@ -379,7 +392,12 @@ function! javaimport#remove_unnecesarries() " {{{
 endfunction
 " }}}
 
-function! javaimport#add_import_statements(classnames)
+"""
+" add import statements for classnames on current buffer.
+"
+" @param classnames will be imported
+""
+function! javaimport#add_import_statements(classnames) " {{{
     let l:save_cursorpos= getpos('.')
     try
         let l:imported_classes= javaimport#imported_classes()
@@ -416,6 +434,7 @@ function! javaimport#add_import_statements(classnames)
         call setpos('.', javaimport#each('v:a + v:b', l:save_cursorpos, [0, 1, 0, 0]))
     endtry
 endfunction
+" }}}
 
 """
 " get some imported classnames (canonical names) from current buffer.
