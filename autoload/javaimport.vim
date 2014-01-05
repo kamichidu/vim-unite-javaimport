@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/javaimport.vim
-" Last Change: 04-Jan-2014.
+" Last Change: 05-Jan-2014.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -303,8 +303,23 @@ endfunction
 " ['hoge=fuga', 'fuga=1'] => {'hoge': 'fuga', 'fuga': 1}
 "
 " @param args unite's args
+" @param coerce dictionary for coercing. e.g. {'{argname}': '{coercedtype}'}
 ""
-function! javaimport#build_args(args) " {{{
+let s:coerces= {} " {{{
+function! s:coerces.Str(val)
+    return a:val
+endfunction
+function! s:coerces.Num(val)
+    return str2nr(a:val)
+endfunction
+function! s:coerces.Float(val)
+    return str2float(a:val)
+endfunction
+function! s:coerces.List(val)
+    return split(a:val, '\s*,\s*')
+endfunction
+" }}}
+function! javaimport#build_args(args, coerces) " {{{
     let l:result= {}
 
     for l:arg in a:args
@@ -313,7 +328,11 @@ function! javaimport#build_args(args) " {{{
         let l:key= l:pair[0]
         let l:value= get(l:pair, 1, '')
 
-        let l:result[l:key]= l:value
+        if has_key(a:coerces, l:key)
+            let l:result[l:key]= s:coerces[a:coerces[l:key]](l:value)
+        else
+            let l:result[l:key]= l:value
+        endif
     endfor
 
     return l:result

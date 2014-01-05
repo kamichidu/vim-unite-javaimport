@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/unite/sources/javaimport.vim
-" Last Change: 04-Jan-2014.
+" Last Change: 05-Jan-2014.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -165,7 +165,7 @@ function! s:source.gather_candidates(args, context) " {{{
 
     let l:classes= s:L.flatten(l:classes)
 
-    let l:args= javaimport#build_args(a:args)
+    let l:args= javaimport#build_args(a:args, {'queue': 'List'})
 
     " show classes only called by expandable
     " otherwise only packages (for speed, memory, anti stop the world)
@@ -190,6 +190,7 @@ function! s:source.gather_candidates(args, context) " {{{
         \)
     elseif has_key(l:args, 'only')
         let l:simple_name= l:args.only
+        let l:rest= get(l:args, 'queue', [])
 
         call filter(l:classes, 'v:val.canonical_name =~# ''\C\.'' . l:simple_name . ''$''')
 
@@ -200,6 +201,7 @@ function! s:source.gather_candidates(args, context) " {{{
         \   '   "source": "javaimport",' .
         \   '   "action__canonical_name": v:val.canonical_name,' .
         \   '   "action__javadoc_url":    v:val.javadoc_url,' .
+        \   '   "action__rest": l:rest,' .
         \   '}'
         \)
     else
