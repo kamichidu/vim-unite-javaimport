@@ -1,11 +1,11 @@
 *unite-javaimport.txt*
 
-Version: 0.02
+Version: 0.10
 Author:  kamichidu <c.kamunagi@gmail.com>
-Last Change: 04-Jan-2014.
+Last Change: 09-Apr-2014.
 License: The MIT License (MIT)
 
-Copyright (c) 2013 kamichidu
+Copyright (c) 2013-2014 kamichidu
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -60,13 +60,19 @@ plugin easily.
 >
     " simple instalation
     NeoBundle 'KamunagiChiduru/unite-javaimport', {
-    \   'depends': ['Shougo/unite.vim'],
+    \   'depends': [
+    \       'Shougo/unite.vim',
+    \       'KamunagiChiduru/vim-javaclasspath',
+    \       'KamunagiChiduru/vim-javalang',
+    \   ],
     \}
 
     " fully instalation
     NeoBundle 'KamunagiChiduru/unite-javaimport', {
     \   'depends': [
     \       'Shougo/unite.vim',
+    \       'KamunagiChiduru/vim-javaclasspath',
+    \       'KamunagiChiduru/vim-javalang',
     \       'yuratomo/w3m.vim',
     \   ],
     \}
@@ -133,7 +139,8 @@ VARIABLE~
 ==============================================================================
 HOW TO USE                                         *unite-javaimport-howtouse*
 
-you have to write .javaimport to your current directory (project root
+configure classpath using |vim-javaclasspath|.
+or you can write .javaimport to your current directory (project root
 dictionary).
 
 an example for .javaimport below.

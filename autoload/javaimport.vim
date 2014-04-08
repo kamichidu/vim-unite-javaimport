@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/javaimport.vim
-" Last Change: 05-Jan-2014.
+" Last Change: 09-Apr-2014.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -39,6 +39,8 @@ let s:L= s:V.import('Data.List')
 let s:BM= s:V.import('Vim.BufferManager').new()
 unlet s:V
 
+let s:jclasspath= javaclasspath#get()
+
 """
 " importの設定を返す
 "
@@ -53,6 +55,33 @@ unlet s:V
 "   ]
 ""
 function! javaimport#import_config() " {{{
+    let l:result= s:parse_javaimport()
+    let l:jclasspath_parsed= s:jclasspath.parse()
+
+    " convert own format
+    for l:entry in l:jclasspath_parsed
+        let l:converted= {}
+
+        if l:entry.kind ==# 'lib'
+            let l:converted.type= 'jar'
+            let l:converted.path= l:entry.path
+            let l:converted.javadoc= get(l:entry, 'javadoc', '')
+        elseif l:entry.kind ==# 'src'
+            let l:converted.type= 'directory'
+            let l:converted.path= l:entry.path
+            let l:converted.javadoc= get(l:entry, 'javadoc', '')
+        endif
+
+        if has_key(l:converted, 'path')
+            call add(l:result, l:converted)
+        endif
+    endfor
+
+    return l:result
+endfunction
+" }}}
+
+function! s:parse_javaimport() " {{{
     if !filereadable('.javaimport')
         return []
     endif
