@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/javaimport.vim
-" Last Change: 09-Apr-2014.
+" Last Change: 22-Apr-2014.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -178,9 +178,7 @@ endfunction
 " @return full path
 ""
 function! javaimport#jar_path() " {{{
-    let l:jarname= 'unite-javaimport-' . g:javaimport_version . '-jar-with-dependencies.jar'
-
-    return globpath(&runtimepath, 'autoload/' . l:jarname)
+    return globpath(&runtimepath, 'bin/javaimport.jar')
 endfunction
 " }}}
 
