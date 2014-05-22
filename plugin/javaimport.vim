@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        plugin/javaimport.vim
-" Last Change: 04-Jan-2014.
+" Last Change: 23-May-2014.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -38,7 +38,9 @@ set cpo&vim
 
 let g:javaimport_version= '0.02'
 
-let g:javaimport_use_default_mapping= 1
+if !exists('g:javaimport_use_default_mapping')
+    let g:javaimport_use_default_mapping= 1
+endif
 
 let g:javaimport_config= get(g:, 'javaimport_config', {})
 let g:javaimport_config.cache_dir= get(g:javaimport_config, 'cache_dir', g:unite_data_directory . '/javaimport/')
