@@ -2,7 +2,7 @@
 
 Version: 0.10
 Author:  kamichidu <c.kamunagi@gmail.com>
-Last Change: 09-Apr-2014.
+Last Change: 25-May-2014.
 License: The MIT License (MIT)
 
 Copyright (c) 2013-2014 kamichidu
@@ -167,6 +167,32 @@ this is like a JSON. for each dictionary must have "path" and may have
 
     "javadoc" (optional)
         javadoc url
+
+==============================================================================
+CUSTOMIZATION                                 *unite-javaimport-customization*
+
+Source ~
+
+クラス一覧を収集する。
+protocol
+
+name ソース名
+
+gather_classes({config}, {context})
+    "canonical_name" (required)
+        完全なクラス名 e.g. java.lang.Object
+
+    "javadoc_url" (optional)
+        クラスのjavadoc url
+
+Organizer ~
+
+filetypeに応じたimport文を管理する。
+
+Config ~
+
+g:javaimport_configの共通設定と、'{source name}/xxx'で設定されたものを、
+各ソース毎に平坦化したものを構築する。
 
 ==============================================================================
 ACKNOWLEDGEMENT                             *unite-javaimport-acknowledgement*

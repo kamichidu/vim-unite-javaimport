@@ -17,7 +17,9 @@ function! s:open(filename) "{{{
   " Detect desktop environment.
   if s:is_windows
     " For URI only.
-    let filename = iconv(filename, &encoding, 'char')
+    if v:version < 704 || (v:version == 704 && !has('patch122'))
+      let filename = iconv(filename, &encoding, 'char')
+    endif
     silent execute '!start rundll32 url.dll,FileProtocolHandler' filename
   elseif s:is_cygwin
     " Cygwin.
@@ -52,8 +54,10 @@ endfunction "}}}
 
 " Move a file.
 " Dispatch s:move_exe() or s:move_vim().
+" FIXME: Currently s:move_vim() does not support
+" moving a directory.
 function! s:move(src, dest) "{{{
-  if s:_has_move_exe()
+  if s:_has_move_exe() || isdirectory(a:src)
     return s:move_exe(a:src, a:dest)
   else
     return s:move_vim(a:src, a:dest)
@@ -80,16 +84,22 @@ if s:is_unix
   function! s:move_exe(src, dest)
     if !s:_has_move_exe() | return 0 | endif
     let [src, dest] = [a:src, a:dest]
-    silent execute '!mv' shellescape(src) shellescape(dest)
+    call system('mv ' . shellescape(src) . ' ' . shellescape(dest))
     return !v:shell_error
   endfunction
 elseif s:is_windows
   function! s:move_exe(src, dest)
     if !s:_has_move_exe() | return 0 | endif
     let [src, dest] = [a:src, a:dest]
-    let src  = substitute(src, '/', '\', 'g')
-    let dest = substitute(dest, '/', '\', 'g')
-    silent execute '!cmd /c move' src dest
+    " Normalize successive slashes to one slash.
+    let src  = substitute(src, '[/\\]\+', '\', 'g')
+    let dest = substitute(dest, '[/\\]\+', '\', 'g')
+    " src must not have trailing '\'.
+    let src  = substitute(src, '\\$', '', 'g')
+    " All characters must be encoded to system encoding.
+    let src  = iconv(src, &encoding, 'char')
+    let dest = iconv(dest, &encoding, 'char')
+    call system('move /y ' . src  . ' ' . dest)
     return !v:shell_error
   endfunction
 else
@@ -134,7 +144,7 @@ if s:is_unix
   function! s:copy_exe(src, dest)
     if !s:_has_copy_exe() | return 0 | endif
     let [src, dest] = [a:src, a:dest]
-    silent execute '!cp' shellescape(src) shellescape(dest)
+    call system('cp ' . shellescape(src) . ' ' . shellescape(dest))
     return !v:shell_error
   endfunction
 elseif s:is_windows
@@ -143,7 +153,7 @@ elseif s:is_windows
     let [src, dest] = [a:src, a:dest]
     let src  = substitute(src, '/', '\', 'g')
     let dest = substitute(dest, '/', '\', 'g')
-    silent execute '!cmd /c copy' src dest
+    call system('copy ' . src . ' ' . dest)
     return !v:shell_error
   endfunction
 else
@@ -166,7 +176,11 @@ endfunction "}}}
 " Returns true if success.
 " Returns false if failure.
 function! s:mkdir_nothrow(...) "{{{
-  silent! return call('mkdir', a:000)
+  try
+    return call('mkdir', a:000)
+  catch
+    return 0
+  endtry
 endfunction "}}}
 
 
@@ -201,7 +215,7 @@ elseif s:is_windows
   endfunction
 
 else
-  function! s:rmdir(path, ...)
+  function! s:rmdir(...)
     throw 'vital: System.File.rmdir(): your platform is not supported'
   endfunction
 endif
