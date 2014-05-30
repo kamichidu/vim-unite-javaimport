@@ -50,10 +50,12 @@ function! s:source.gather_classes(config, context)
     let [output, error]= self.wait_and_read()
     PP! {'wait_and_read() ': reltimestr(reltime(start_time))}
 
-    return map(split(output, "\n"), "
+    return map(split(output, '\r\=\n'), "
     \   {
+    \       'word':           v:val,
     \       'canonical_name': v:val,
     \       'simple_name':    v:val,
+    \       'javadoc_url':    '',
     \   }
     \")
 endfunction

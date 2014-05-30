@@ -33,16 +33,17 @@ set cpo&vim
 
 let s:L= javaimport#Data_List()
 
+let s:class_sources= {
+\   'jar':       javaimport#source#jar#define(),
+\   'directory': javaimport#source#directory#define(),
+\   'javadoc':   javaimport#source#javadoc#define(),
+\}
+
 let s:source= {
 \   'name'           : 'javaimport',
 \   'description'    : 'candidates from classes in current classpath.',
 \   'sorters'        : ['sorter_word'],
 \   'max_candidates' : 100,
-\   'source__sources': [
-\       javaimport#source#jar#define(),
-\       javaimport#source#directory#define(),
-\       javaimport#source#javadoc#define(),
-\   ],
 \}
 
 function! s:source.gather_candidates(args, context) " {{{
@@ -50,7 +51,7 @@ function! s:source.gather_candidates(args, context) " {{{
 
     let l:classes= []
     for l:config in l:configs
-        let source= self.source__sources[l:config.type]
+        let source= s:class_sources[l:config.type]
         let items= source.gather_classes(l:config, a:context)
 
         call add(l:classes, items)
@@ -114,8 +115,38 @@ function! s:source.gather_candidates(args, context) " {{{
 endfunction
 " }}}
 
+let s:allclasses= {
+\   'name'           : 'javaimport/class',
+\   'description'    : 'candidates from classes in current classpath.',
+\   'sorters'        : ['sorter_word'],
+\   'max_candidates' : 100,
+\}
+
+function! s:allclasses.gather_candidates(args, context)
+    let configs= javaimport#import_config()
+
+    let classes= []
+    for config in configs
+        let source= s:class_sources[config.type]
+        let items= source.gather_classes(config, a:context)
+
+        call add(classes, items)
+    endfor
+    let classes= s:L.flatten(classes)
+
+    return map(classes, "
+    \   {
+    \       'word':   v:val.word,
+    \       'kind':   'javatype',
+    \       'source': 'javaimport',
+    \       'action__canonical_name': v:val.canonical_name,
+    \       'action__javadoc_url':    v:val.javadoc_url,
+    \   }
+    \")
+endfunction
+
 function! unite#sources#javaimport#define() " {{{
-    return s:source
+    return [deepcopy(s:source), deepcopy(s:allclasses)]
 endfunction
 " }}}
 
