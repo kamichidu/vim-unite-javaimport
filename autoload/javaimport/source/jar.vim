@@ -43,7 +43,6 @@ function! s:source.gather_classes(config, context)
     call self.wait_and_read()
     PP! {'wait_and_read() ': reltimestr(reltime(start_time))}
 
-    PP! g:javaimport_config
     let start_time= reltime()
     call self.writeln('list --public --exclude_package ' . join(g:javaimport_config.exclude_packages, ','))
 
@@ -65,7 +64,9 @@ function! s:source.launch()
         return
     endif
 
-    let self.proc= vimproc#popen3($JAVA_HOME . '/bin/java -jar ' . globpath(&runtimepath, 'bin/javaimport.jar'))
+    let self.ofile= tempname()
+
+    let self.proc= vimproc#popen3(printf("%s/bin/java -jar %s --ofile %s", $JAVA_HOME, globpath(&runtimepath, 'bin/javaimport.jar'), self.ofile))
 
     call self.wait_and_read()
 endfunction
@@ -82,7 +83,15 @@ function! s:source.wait_and_read()
         let err.= self.proc.stderr.read()
 
         if out =~# '\%(^\|\r\=\n\)\s>\s$'
-            return [out, err]
+            if filereadable(self.ofile)
+                let content= join(readfile(self.ofile), "\n")
+
+                call delete(self.ofile)
+
+                return [content, err]
+            else
+                return [out, err]
+            endif
         endif
     endwhile
 
