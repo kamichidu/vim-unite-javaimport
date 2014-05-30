@@ -43,8 +43,9 @@ function! s:source.gather_classes(config, context)
     call self.wait_and_read()
     PP! {'wait_and_read() ': reltimestr(reltime(start_time))}
 
+    PP! g:javaimport_config
     let start_time= reltime()
-    call self.writeln('list --public')
+    call self.writeln('list --public --exclude_package ' . join(g:javaimport_config.exclude_packages, ','))
 
     let [output, error]= self.wait_and_read()
     PP! {'wait_and_read() ': reltimestr(reltime(start_time))}
