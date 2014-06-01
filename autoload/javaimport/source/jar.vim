@@ -29,25 +29,17 @@ let s:source= {
 \}
 
 function! s:source.gather_classes(config, context)
-    let start_time= reltime()
     call self.launch()
-    PP! {'launch() ': reltimestr(reltime(start_time))}
 
-    let start_time= reltime()
     call self.writeln('path clear')
     call self.wait_and_read()
-    PP! {'wait_and_read() ': reltimestr(reltime(start_time))}
 
-    let start_time= reltime()
     call self.writeln('path add ' . a:config.path)
     call self.wait_and_read()
-    PP! {'wait_and_read() ': reltimestr(reltime(start_time))}
 
-    let start_time= reltime()
     call self.writeln('list --public --exclude_package ' . join(g:javaimport_config.exclude_packages, ','))
 
     let [output, error]= self.wait_and_read()
-    PP! {'wait_and_read() ': reltimestr(reltime(start_time))}
 
     return map(split(output, '\r\=\n'), "
     \   {
