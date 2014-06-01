@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/unite/sources/javaimport.vim
-" Last Change: 30-May-2014.
+" Last Change: 01-Jun-2014.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -46,7 +46,7 @@ let s:source= {
 \   'max_candidates' : 100,
 \}
 
-function! s:source.gather_candidates(args, context) " {{{
+function! s:source.gather_candidates(args, context)
     let l:configs= javaimport#import_config()
 
     let l:classes= []
@@ -113,7 +113,6 @@ function! s:source.gather_candidates(args, context) " {{{
         \)
     endif
 endfunction
-" }}}
 
 let s:allclasses= {
 \   'name'           : 'javaimport/class',
@@ -145,10 +144,9 @@ function! s:allclasses.gather_candidates(args, context)
     \")
 endfunction
 
-function! unite#sources#javaimport#define() " {{{
+function! unite#sources#javaimport#define()
     return [deepcopy(s:source), deepcopy(s:allclasses)]
 endfunction
-" }}}
 
 let &cpo= s:save_cpo
 unlet s:save_cpo
