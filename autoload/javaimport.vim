@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/javaimport.vim
-" Last Change: 30-May-2014.
+" Last Change: 01-Jun-2014.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -79,7 +79,7 @@ let s:jclasspath= javaclasspath#get()
 "   [
 "       {
 "           'path': 'path/to/item', 
-"           'type': {'jar'|'file'|'javadoc'}, 
+"           'type': {'jar'|'directory'|'javadoc'}, 
 "           'javadoc': 'path/to/javadoc', 
 "       }, 
 "   ]
