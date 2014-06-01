@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/unite/kinds/javatype.vim
-" Last Change: 05-Jan-2014.
+" Last Change: 01-Jun-2014.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -47,22 +47,22 @@ let s:kind.action_table.import= {
 \   'is_selectable': 1,
 \}
 function! s:kind.action_table.import.func(candidates) " {{{
-    let l:save_cursorpos= getpos('.')
+    let save_cursorpos= getpos('.')
     try
-        let l:canonical_names= map(deepcopy(a:candidates), 'v:val.action__canonical_name')
+        let canonical_names= map(deepcopy(a:candidates), 'v:val.action__canonical_name')
 
-        call javaimport#add_import_statements(l:canonical_names)
+        call javaimport#add_import_statements(canonical_names)
         call javaimport#sort_import_statements()
 
-        let l:rest= get(a:candidates[0], 'action__rest', [])
-        if !empty(l:rest)
-            let l:next= l:rest[0]
-            let l:rest= l:rest[1:]
+        let rest= get(a:candidates[0], 'action__rest', [])
+        if !empty(rest)
+            let next= rest[0]
+            let rest= rest[1:]
 
-            call unite#start([['javaimport', 'only=' . l:next, 'queue=' . join(l:rest, ',')]])
+            call unite#start([['javaimport', 'only=' . next, 'queue=' . join(rest, ',')]])
         endif
     finally
-        call setpos('.', javaimport#each('v:a + v:b', l:save_cursorpos, [0, 1, 0, 0]))
+        call setpos('.', javaimport#each('v:a + v:b', save_cursorpos, [0, 1, 0, 0]))
     endtry
 endfunction
 " }}}
