@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/javaimport.vim
-" Last Change: 22-Apr-2014.
+" Last Change: 01-Jun-2014.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -31,13 +31,43 @@
 let s:save_cpo= &cpo
 set cpo&vim
 
-let s:V= vital#of('unite-javaimport')
+let s:V= vital#of('javaimport')
+let s:P= s:V.import('Process')
 let s:FILE= s:V.import('System.File')
 let s:CACHE= s:V.import('System.Cache')
 let s:JSON= s:V.import('Web.JSON')
+let s:HTTP= s:V.import('Web.HTTP')
 let s:L= s:V.import('Data.List')
-let s:BM= s:V.import('Vim.BufferManager').new()
+let s:BM= s:V.import('Vim.BufferManager')
 unlet s:V
+
+function! javaimport#Process()
+    return s:P
+endfunction
+
+function! javaimport#System_File()
+    return s:FILE
+endfunction
+
+function! javaimport#System_Cache()
+    return s:CACHE
+endfunction
+
+function! javaimport#Web_JSON()
+    return s:JSON
+endfunction
+
+function! javaimport#Web_HTTP()
+    return s:HTTP
+endfunction
+
+function! javaimport#Data_List()
+    return s:L
+endfunction
+
+function! javaimport#Vim_BufferManager()
+    return s:BM
+endfunction
 
 let s:jclasspath= javaclasspath#get()
 
@@ -49,7 +79,7 @@ let s:jclasspath= javaclasspath#get()
 "   [
 "       {
 "           'path': 'path/to/item', 
-"           'type': {'jar'|'file'|'javadoc'}, 
+"           'type': {'jar'|'directory'|'javadoc'}, 
 "           'javadoc': 'path/to/javadoc', 
 "       }, 
 "   ]
@@ -169,16 +199,6 @@ function! javaimport#each(expr, lhs, rhs) " {{{
         call add(l:result, eval(l:expr))
     endfor
     return l:result
-endfunction
-" }}}
-
-"""
-" an executable jar path.
-"
-" @return full path
-""
-function! javaimport#jar_path() " {{{
-    return globpath(&runtimepath, 'bin/javaimport.jar')
 endfunction
 " }}}
 
