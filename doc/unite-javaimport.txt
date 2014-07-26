@@ -2,7 +2,7 @@
 
 Version: 0.10
 Author:  kamichidu <c.kamunagi@gmail.com>
-Last Change: 09-Apr-2014.
+Last Change: 26-Jul-2014.
 License: The MIT License (MIT)
 
 Copyright (c) 2013-2014 kamichidu
@@ -42,10 +42,10 @@ TODO
 
 DEPENDENCIES ~
 
-    * https://github.com/Shougo/unite.vim (must)
-    * Java Runtime Environment (JRE) 1.6 or above (must)
-    * https://github.com/yuratomo/w3m.vim (to preview javadoc)
-    * Exuberant Ctags (must)
+    * https://github.com/Shougo/unite.vim (required)
+    * Java Runtime Environment (JRE) 1.6 or above (required)
+    * https://github.com/yuratomo/w3m.vim (optional, to preview javadoc)
+    * Exuberant Ctags (required)
 
 ==============================================================================
 INSTALL                                             *unite-javaimport-install*
