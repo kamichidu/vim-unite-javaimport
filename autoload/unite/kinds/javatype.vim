@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/unite/kinds/javatype.vim
-" Last Change: 01-Jun-2014.
+" Last Change: 02-Jun-2014.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -78,6 +78,18 @@ function! s:kind.action_table.preview.func(candidate) " {{{
     call javaimport#preview(a:candidate.action__javadoc_url)
 endfunction
 " }}}
+let s:kind.action_table.static_import= {
+\   'description': 'open new unite buffer for static import',
+\   'is_quit': 0,
+\   'is_selectable': 0,
+\   'is_start': 1,
+\}
+function! s:kind.action_table.static_import.func(candidate)
+    call unite#start_script(
+    \   [
+    \   ],
+    \)
+endfunction
 
 let &cpo = s:save_cpo
 unlet s:save_cpo

@@ -56,9 +56,11 @@ function! s:source.launch()
         return
     endif
 
+    " vimproc#popen3() delete '\' from path when 'shellslash' turned on
+    let jvm= expand($JAVA_HOME) . '/bin/java'
     let self.ofile= tempname()
 
-    let self.proc= vimproc#popen3(printf("%s/bin/java -jar %s --ofile %s", $JAVA_HOME, globpath(&runtimepath, 'bin/javaimport.jar'), self.ofile))
+    let self.proc= vimproc#popen3(printf("%s -jar %s --ofile %s", jvm, globpath(&runtimepath, 'bin/javaimport.jar'), self.ofile))
 
     call self.wait_and_read()
 endfunction
