@@ -39,6 +39,7 @@ let s:JSON= s:V.import('Web.JSON')
 let s:HTTP= s:V.import('Web.HTTP')
 let s:L= s:V.import('Data.List')
 let s:BM= s:V.import('Vim.BufferManager')
+let s:M= s:V.import('Vim.Message')
 unlet s:V
 
 function! javaimport#Process()
@@ -67,6 +68,10 @@ endfunction
 
 function! javaimport#Vim_BufferManager()
     return s:BM
+endfunction
+
+function! javaimport#Vim_Message()
+    return s:M
 endfunction
 
 let s:jclasspath= javaclasspath#get()

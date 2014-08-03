@@ -33,6 +33,7 @@ set cpo&vim
 
 let s:L= javaimport#Data_List()
 let s:J= javaimport#Web_JSON()
+let s:M= javaimport#Vim_Message()
 
 let s:class_sources= {
 \   'jar':       javaimport#source#jar#define(),
@@ -143,7 +144,13 @@ function! s:allclasses.gather_candidates(args, context)
 
     if has_key(query, 'only')
         " query.only == simple name
-        let regex_object.regex= '\.' . query.only . '$'
+        if empty(query.only)
+            call s:M.warn("javaimport: The `only' argument must takes non-empty classname.")
+            " canonical name can't has {'<', '(', '^'}
+            let query.only= '<(^o^)>'
+        endif
+        " constant match
+        let regex_object.regex= '\b\Q' . query.only . '\E$'
     endif
 
     let server= javaimport#server()
