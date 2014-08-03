@@ -133,29 +133,29 @@ let s:allclasses= {
 \   'max_candidates' : 100,
 \}
 
-function! s:allclasses.async_gather_candidates(args, context)
-    if has_key(a:context, 'source__configs')
-        let configs= deepcopy(a:context.source__configs)
-    else
-        let configs= javaimport#import_config()
-        let a:context.source__configs= deepcopy(configs)
-    endif
-
+function! s:allclasses.gather_candidates(args, context)
     let server= javaimport#server()
+    let configs= javaimport#import_config()
+    let ticket= server.request({
+    \   'command': 'classes',
+    \   'classpath': map(configs, 'v:val.path'),
+    \   'predicate': {
+    \       'modifiers': ['public'],
+    \       'exclude_packages': get(g:javaimport_config, 'exclude_packages', []),
+    \   },
+    \})
 
-    if has_key(a:context, 'source__ticket')
-        let ticket= a:context.source__ticket
-    else
-        let ticket= server.request({
-        \   'command': 'classes',
-        \   'classpath': map(configs, 'v:val.path'),
-        \   'predicate': {
-        \       'modifiers': ['public'],
-        \       'exclude_packages': get(g:javaimport_config, 'exclude_packages', []),
-        \   },
-        \})
-        let a:context.source__ticket= ticket
-    endif
+    let a:context.source__configs= configs
+    let a:context.source__ticket= ticket
+    let a:context.is_async= 1
+
+    return []
+endfunction
+
+function! s:allclasses.async_gather_candidates(args, context)
+    let server= javaimport#server()
+    let configs= deepcopy(a:context.source__configs)
+    let ticket= deepcopy(a:context.source__ticket)
 
     let response= server.receive(ticket)
 
