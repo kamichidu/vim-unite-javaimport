@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/unite/sources/javaimport.vim
-" Last Change: 03-Aug-2014.
+" Last Change: 04-Aug-2014.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -48,33 +48,44 @@ let s:source= {
 \}
 
 function! s:source.gather_candidates(args, context)
-    let l:configs= javaimport#import_config()
+    let configs= javaimport#import_config()
 
-    let l:classes= []
-    for l:config in l:configs
-        let source= s:class_sources[l:config.type]
-        let items= source.gather_classes(l:config, a:context)
+    let a:context.source__sources= map(deepcopy(configs), "
+    \   {
+    \       'source': s:class_sources[v:val.type],
+    \       'config': v:val,
+    \   }
+    \")
 
-        call add(l:classes, items)
-    endfor
+    let a:context.is_async= !empty(a:context.source__sources)
 
-    let l:classes= s:L.flatten(l:classes)
+    return []
+endfunction
 
-    let l:args= javaimport#build_args(a:args, {'queue': 'List'})
+function! s:source.async_gather_candidates(args, context)
+    if empty(a:context.source__sources)
+        let a:context.is_async= 0
+        return []
+    endif
+
+    let task= s:L.shift(a:context.source__sources)
+    let classes= task.source.gather_classes(task.config, a:context)
+
+    let args= javaimport#build_args(a:args)
 
     " show classes only called by expandable
     " otherwise only packages (for speed, memory, anti stop the world)
-    if has_key(l:args, 'show_class') && l:args.show_class || has_key(l:args, '!')
-        let l:package_regex= get(l:args, 'package', '')
+    if has_key(args, 'show_class') && args.show_class || has_key(args, '!')
+        let package_regex= get(args, 'package', '')
 
-        if !empty(l:package_regex)
-            let l:package_regex= substitute(l:package_regex, '\.', '\\.', 'g')
+        if !empty(package_regex)
+            let package_regex= substitute(package_regex, '\.', '\\.', 'g')
 
             " filter by package name depends on naming convention
-            call filter(l:classes, 'v:val.canonical_name =~# ''^\C' . l:package_regex . '\.[A-Z]''')
+            call filter(classes, 'v:val.canonical_name =~# ''^\C' . package_regex . '\.[A-Z]''')
         endif
 
-        return map(l:classes,
+        return map(classes,
         \   '{' .
         \   '   "word":   v:val.word,' .
         \   '   "kind":   "javatype",' .
@@ -83,28 +94,28 @@ function! s:source.gather_candidates(args, context)
         \   '   "action__javadoc_url":    v:val.javadoc_url,' .
         \   '}'
         \)
-    elseif has_key(l:args, 'only')
-        let l:simple_name= l:args.only
-        let l:rest= get(l:args, 'queue', [])
+    elseif has_key(args, 'only')
+        let simple_name= args.only
+        let rest= get(args, 'queue', [])
 
-        call filter(l:classes, 'v:val.canonical_name =~# ''\C\.'' . l:simple_name . ''$''')
+        call filter(classes, 'v:val.canonical_name =~# ''\C\.'' . simple_name . ''$''')
 
-        return map(l:classes,
+        return map(classes,
         \   '{' .
         \   '   "word":   v:val.word,' .
         \   '   "kind":   "javatype",' .
         \   '   "source": "javaimport",' .
         \   '   "action__canonical_name": v:val.canonical_name,' .
         \   '   "action__javadoc_url":    v:val.javadoc_url,' .
-        \   '   "action__rest": l:rest,' .
+        \   '   "action__rest": rest,' .
         \   '}'
         \)
     else
-        let l:packages= map(l:classes, 'matchstr(v:val.canonical_name, ''\C[a-z][a-z0-9_]*\%(\.[a-z][a-z0-9_]*\)*'')')
+        let packages= map(classes, 'matchstr(v:val.canonical_name, ''\C[a-z][a-z0-9_]*\%(\.[a-z][a-z0-9_]*\)*'')')
 
-        let l:packages= s:L.uniq(l:packages)
+        let packages= s:L.uniq(packages)
 
-        return map(l:packages,
+        return map(packages,
         \   '{' .
         \   '   "word":   v:val,' .
         \   '   "kind":   "expandable",' .
@@ -183,20 +194,49 @@ let s:static_import= {
 \}
 
 function! s:static_import.async_gather_candidates(args, context)
-    if !(has_key(a:args, 'classname') && has_key(a:args, 'jarpath'))
+    let args= javaimport#build_args(a:args)
+
+    if !(has_key(args, 'classname') && has_key(args, 'jarpath'))
         let a:context.is_async= 0
         return []
     endif
 
-    let classname= a:args.classname
-    let jarpath= a:args.jarpath
+    let classname= args.classname
+    let jarpath= args.jarpath
+
+    let server= javaimport#server()
 
     " show_fields
-    if has_key(a:context, 'source__fields_ticket')
+    if !has_key(a:context, 'source__fields_ticket')
+        let a:context.source__fields_ticket= server.request({
+        \   'command': 'fields',
+        \   'classpath': [jarpath],
+        \   'predicate': {
+        \       'classname': {'regex': classname, 'type': 'inclusive'},
+        \       'modifiers': ['public', 'static'],
+        \       'exclude_packages': get(g:javaimport_config, 'exclude_packages', []),
+        \   },
+        \})
     endif
     " show_methods
-    if has_key(a:context, 'source__methods_ticket')
+    if !has_key(a:context, 'source__methods_ticket')
+        let a:context.source__methods_ticket= server.request({
+        \   'command': 'methods',
+        \   'classpath': [jarpath],
+        \   'predicate': {
+        \       'classname': {'regex': classname, 'type': 'inclusive'},
+        \       'modifiers': ['public', 'static'],
+        \       'exclude_packages': get(g:javaimport_config, 'exclude_packages', []),
+        \   },
+        \})
     endif
+
+    let fields_response= server.receive(a:context.source__fields_ticket)
+    let methods_response= server.receive(a:context.source__methods_ticket)
+
+    " TODO
+    let a:context.is_async= 0
+    return []
 endfunction
 
 function! unite#sources#javaimport#define()

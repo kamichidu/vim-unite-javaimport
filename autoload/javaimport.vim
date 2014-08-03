@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/javaimport.vim
-" Last Change: 03-Aug-2014.
+" Last Change: 04-Aug-2014.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -351,45 +351,17 @@ function! javaimport#preview(url) " {{{
 endfunction
 " }}}
 
-"""
-" ['hoge=fuga', 'fuga=1'] => {'hoge': 'fuga', 'fuga': 1}
-"
-" @param args unite's args
-" @param coerce dictionary for coercing. e.g. {'{argname}': '{coercedtype}'}
-""
-let s:coerces= {} " {{{
-function! s:coerces.Str(val)
-    return a:val
-endfunction
-function! s:coerces.Num(val)
-    return str2nr(a:val)
-endfunction
-function! s:coerces.Float(val)
-    return str2float(a:val)
-endfunction
-function! s:coerces.List(val)
-    return split(a:val, '\s*,\s*')
-endfunction
-" }}}
-function! javaimport#build_args(args, coerces) " {{{
-    let l:result= {}
+function! javaimport#build_args(args)
+    let result= {}
 
-    for l:arg in a:args
-        let l:pair= split(l:arg, '=')
+    for arg in a:args
+        let pair= split(arg, '=')
 
-        let l:key= l:pair[0]
-        let l:value= get(l:pair, 1, '')
-
-        if has_key(a:coerces, l:key)
-            let l:result[l:key]= s:coerces[a:coerces[l:key]](l:value)
-        else
-            let l:result[l:key]= l:value
-        endif
+        let result[pair[0]]= get(pair, 1, '')
     endfor
 
-    return l:result
+    return result
 endfunction
-" }}}
 
 """
 " start unite-javaimport by simple_name to import quickly.
