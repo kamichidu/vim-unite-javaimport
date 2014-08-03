@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/unite/kinds/javatype.vim
-" Last Change: 02-Jun-2014.
+" Last Change: 03-Aug-2014.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -33,7 +33,7 @@ set cpo&vim
 
 let s:kind = {
 \   'name':           'javatype',
-\   'parents':        [],
+\   'parents':        ['common'],
 \   'default_action': 'import',
 \   'action_table':   {},
 \}
@@ -85,10 +85,15 @@ let s:kind.action_table.static_import= {
 \   'is_start': 1,
 \}
 function! s:kind.action_table.static_import.func(candidate)
-    call unite#start_script(
-    \   [
-    \   ],
-    \)
+    if empty(a:candidate.action__jar_path)
+        return
+    endif
+
+    call unite#start_script([[
+    \   'javaimport/static_import',
+    \   'class=' . a:candidate.action__canonical_name,
+    \   'path=' . a:candidate.action__jar_path,
+    \]])
 endfunction
 
 let &cpo = s:save_cpo
