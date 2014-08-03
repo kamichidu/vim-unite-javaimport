@@ -1,5 +1,5 @@
 javaimport
-fb554d1
+f0b5f5e
 
 System.File
 System.Cache
@@ -7,3 +7,4 @@ Web.JSON
 Data.List
 Vim.BufferManager
 Web.HTTP
+Vim.Message
