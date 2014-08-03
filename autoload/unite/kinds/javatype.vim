@@ -91,8 +91,8 @@ function! s:kind.action_table.static_import.func(candidate)
 
     call unite#start_script([[
     \   'javaimport/static_import',
-    \   'class=' . a:candidate.action__canonical_name,
-    \   'path=' . a:candidate.action__jar_path,
+    \   'classname=' . a:candidate.action__canonical_name,
+    \   'jarpath=' . a:candidate.action__jar_path,
     \]])
 endfunction
 

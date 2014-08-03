@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        plugin/javaimport.vim
-" Last Change: 26-Jul-2014.
+" Last Change: 03-Aug-2014.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -53,6 +53,15 @@ let g:javaimport_config.exclude_packages= get(g:javaimport_config, 'exclude_pack
 \   'sun',
 \   'sunw',
 \])
+let g:javaimport_config.server= extend(
+\   {
+\       'vm': $JAVA_HOME . '/bin/java',
+\       'host': 'localhost',
+\       'port': 51234,
+\       'lockfile': g:javaimport_config.cache_dir . '/server.lock',
+\   },
+\   get(g:javaimport_config, 'server', {})
+\)
 
 command! JavaImportClearCache call javaimport#clear_cache()
 command! JavaImportSortStatements call javaimport#sort_import_statements()

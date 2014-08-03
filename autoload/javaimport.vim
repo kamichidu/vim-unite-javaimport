@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/javaimport.vim
-" Last Change: 01-Jun-2014.
+" Last Change: 03-Aug-2014.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -530,6 +530,21 @@ function! javaimport#region_of_import_statements() " {{{
     endtry
 endfunction
 " }}}
+
+function! javaimport#server()
+    if exists('s:server')
+        return s:server
+    endif
+
+    let s:server= javaimport#server#launch()
+
+    augroup javaimport_ensure_terminate_server
+        autocmd!
+        autocmd VimLeavePre * call s:server.terminate()
+    augroup END
+
+    return javaimport#server()
+endfunction
 
 let &cpo= s:save_cpo
 unlet s:save_cpo

@@ -31,13 +31,7 @@ let s:source= {
 function! s:source.gather_classes(config, context)
     call self.launch()
 
-    call self.writeln('path clear')
-    call self.wait_and_read()
-
-    call self.writeln('path add ' . a:config.path)
-    call self.wait_and_read()
-
-    call self.writeln('list --public --exclude_package ' . join(g:javaimport_config.exclude_packages, ','))
+    call self.writeln('list --public --exclude_package ' . join(g:javaimport_config.exclude_packages, ',') . ' --jar ' . a:config.path)
 
     let [output, error]= self.wait_and_read()
 
@@ -47,6 +41,7 @@ function! s:source.gather_classes(config, context)
     \       'canonical_name': v:val,
     \       'simple_name':    v:val,
     \       'javadoc_url':    '',
+    \       'jar_path':       a:config.path,
     \   }
     \")
 endfunction
@@ -55,10 +50,6 @@ function! s:source.launch()
     if has_key(self, 'proc')
         return
     endif
-
-    " vimproc#popen3() delete '\' from path when 'shellslash' turned on
-    let jvm= expand($JAVA_HOME) . '/bin/java'
-    let self.ofile= tempname()
 
     let self.proc= vimproc#popen3(printf("%s -jar %s --ofile %s", jvm, globpath(&runtimepath, 'bin/javaimport.jar'), self.ofile))
 

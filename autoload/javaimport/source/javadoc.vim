@@ -58,6 +58,7 @@ function! s:new_candidate(config, canonical_name) " {{{
     \   'word'          : a:canonical_name,
     \   'canonical_name': a:canonical_name,
     \   'javadoc_url'   : l:javadoc_url,
+    \   'jar_path':     : '',
     \}
 endfunction
 

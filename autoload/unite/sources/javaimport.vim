@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/unite/sources/javaimport.vim
-" Last Change: 01-Jun-2014.
+" Last Change: 03-Aug-2014.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -32,6 +32,7 @@ let s:save_cpo= &cpo
 set cpo&vim
 
 let s:L= javaimport#Data_List()
+let s:J= javaimport#Web_JSON()
 
 let s:class_sources= {
 \   'jar':       javaimport#source#jar#define(),
@@ -121,27 +122,81 @@ let s:allclasses= {
 \   'max_candidates' : 100,
 \}
 
-function! s:allclasses.gather_candidates(args, context)
-    let configs= javaimport#import_config()
+function! s:allclasses.async_gather_candidates(args, context)
+    if has_key(a:context, 'source__configs')
+        let configs= deepcopy(a:context.source__configs)
+    else
+        let configs= javaimport#import_config()
+        let a:context.source__configs= deepcopy(configs)
+    endif
 
-    let classes= []
-    for config in configs
-        let source= s:class_sources[config.type]
-        let items= source.gather_classes(config, a:context)
+    let server= javaimport#server()
 
-        call add(classes, items)
-    endfor
-    let classes= s:L.flatten(classes)
+    if has_key(a:context, 'source__ticket')
+        let ticket= a:context.source__ticket
+    else
+        let ticket= server.request({
+        \   'command': 'classes',
+        \   'classpath': map(configs, 'v:val.path'),
+        \   'predicate': {
+        \       'modifiers': ['public'],
+        \       'exclude_packages': get(g:javaimport_config, 'exclude_packages', []),
+        \   },
+        \})
+        let a:context.source__ticket= ticket
+    endif
 
-    return map(classes, "
+    let response= server.receive(ticket)
+
+    if empty(response)
+        return []
+    endif
+
+    if response.status ==# 'finish' || response.status ==# 'error'
+        let a:context.is_async= 0
+    endif
+
+    return map(response.result, "
     \   {
-    \       'word':   v:val.word,
+    \       'word':   v:val.classname,
     \       'kind':   'javatype',
     \       'source': 'javaimport',
-    \       'action__canonical_name': v:val.canonical_name,
-    \       'action__javadoc_url':    v:val.javadoc_url,
+    \       'action__canonical_name': v:val.classname,
+    \       'action__javadoc_url':    get(v:val, 'javadoc_url', ''),
+    \       'action__jar_path':       v:val.jar,
     \   }
     \")
+    " return map(classes, "
+    " \   {
+    " \       'word':   v:val.word,
+    " \       'kind':   'javatype',
+    " \       'source': 'javaimport',
+    " \       'action__canonical_name': v:val.canonical_name,
+    " \       'action__javadoc_url':    v:val.javadoc_url,
+    " \       'action__jar_path':        v:val.jar_path
+    " \   }
+    " \")
+endfunction
+
+let s:static_import= {
+\   'name': 'javaimport/static_import',
+\}
+
+function! s:static_import.async_gather_candidates(args, context)
+    if !(has_key(a:args, 'classname') && has_key(a:args, 'jarpath'))
+        let a:context.is_async= 0
+        return []
+    endif
+
+    let classname= a:args.classname
+    let jarpath= a:args.jarpath
+
+    " show_fields
+    if has_key(a:context, 'source__fields_ticket')
+    endif
+    " show_methods
+    if has_key(a:context, 'source__methods_ticket')
+    endif
 endfunction
 
 function! unite#sources#javaimport#define()
