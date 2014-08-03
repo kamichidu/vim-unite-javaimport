@@ -51,7 +51,9 @@ function! s:source.launch()
         return
     endif
 
-    let self.proc= vimproc#popen3(printf("%s -jar %s --ofile %s", jvm, globpath(&runtimepath, 'bin/javaimport.jar'), self.ofile))
+    let self.ofile= tempname()
+    let jvm= expand($JAVA_HOME) . '/bin/java'
+    let self.proc= vimproc#popen3(printf("%s -jar %s --ofile %s", jvm, globpath(&runtimepath, 'bin/javaimport-old.jar'), self.ofile))
 
     call self.wait_and_read()
 endfunction
