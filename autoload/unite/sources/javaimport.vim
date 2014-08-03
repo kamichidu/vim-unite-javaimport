@@ -134,12 +134,25 @@ let s:allclasses= {
 \}
 
 function! s:allclasses.gather_candidates(args, context)
+    " handle arguments
+    let query= javaimport#build_args(a:args)
+    let regex_object= {
+    \   'regex': '',
+    \   'type': 'inclusive',
+    \}
+
+    if has_key(query, 'only')
+        " query.only == simple name
+        let regex_object.regex= '\.' . query.only . '$'
+    endif
+
     let server= javaimport#server()
     let configs= javaimport#import_config()
     let ticket= server.request({
     \   'command': 'classes',
     \   'classpath': map(configs, 'v:val.path'),
     \   'predicate': {
+    \       'classname': regex_object,
     \       'modifiers': ['public'],
     \       'exclude_packages': get(g:javaimport_config, 'exclude_packages', []),
     \   },
