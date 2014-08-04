@@ -95,7 +95,11 @@ function! s:server.terminate()
         let server_pidfile= globpath(fnamemodify(self.lockfile, ':h'), '*.server')
         let server_pid= fnamemodify(server_pidfile, ':t:r')
 
-        call vimproc#kill(server_pid, g:vimproc#SIGTERM)
+        if has('win16') || has('win32') || has('win64')
+            call self.request({'command': 'quit'})
+        else
+            call vimproc#kill(server_pid, g:vimproc#SIGTERM)
+        endif
     endif
 
     let clientfile= fnamemodify(self.lockfile, ':h') . printf('/%d.client', getpid())
@@ -117,8 +121,13 @@ function! javaimport#server#launch()
         call mkdir(fnamemodify(server.lockfile, ':h'), 'p')
     endif
 
-    " call s:P.spawn(printf('%s -jar %s --port %d --lockfile %s', server.vm, jarpath, server.port, server.lockfile))
-    call vimproc#system_bg(printf('%s -jar %s --port %d --lockfile %s', server.vm, jarpath, server.port, server.lockfile))
+    let cmd= printf('%s -jar %s --port %d --lockfile %s', server.vm, jarpath, server.port, server.lockfile)
+
+    if has('win16') || has('win32') || has('win64')
+        call s:P.spawn(cmd)
+    else
+        call vimproc#system_bg(cmd)
+    endif
 
     let clientfile= fnamemodify(server.lockfile, ':h') . printf('/%d.client', getpid())
     call writefile([], clientfile)
