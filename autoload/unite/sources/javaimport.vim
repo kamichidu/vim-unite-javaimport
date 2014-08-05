@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/unite/sources/javaimport.vim
-" Last Change: 04-Aug-2014.
+" Last Change: 05-Aug-2014.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -97,7 +97,6 @@ function! s:source.async_gather_candidates(args, context)
         \)
     elseif has_key(args, 'only')
         let simple_name= args.only
-        let rest= get(args, 'queue', [])
 
         call filter(classes, 'v:val.canonical_name =~# ''\C\.'' . simple_name . ''$''')
 
@@ -108,7 +107,6 @@ function! s:source.async_gather_candidates(args, context)
         \   '   "source": "javaimport",' .
         \   '   "action__canonical_name": v:val.canonical_name,' .
         \   '   "action__javadoc_url":    v:val.javadoc_url,' .
-        \   '   "action__rest": rest,' .
         \   '}'
         \)
     else
@@ -197,16 +195,6 @@ function! s:allclasses.async_gather_candidates(args, context)
     \       'action__jar_path':       v:val.jar,
     \   }
     \")
-    " return map(classes, "
-    " \   {
-    " \       'word':   v:val.word,
-    " \       'kind':   'javatype',
-    " \       'source': 'javaimport',
-    " \       'action__canonical_name': v:val.canonical_name,
-    " \       'action__javadoc_url':    v:val.javadoc_url,
-    " \       'action__jar_path':        v:val.jar_path
-    " \   }
-    " \")
 endfunction
 
 let s:static_import= {

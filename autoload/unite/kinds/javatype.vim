@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/unite/kinds/javatype.vim
-" Last Change: 03-Aug-2014.
+" Last Change: 05-Aug-2014.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT) {{{
 " 
@@ -53,14 +53,6 @@ function! s:kind.action_table.import.func(candidates) " {{{
 
         call javaimport#add_import_statements(canonical_names)
         call javaimport#sort_import_statements()
-
-        let rest= get(a:candidates[0], 'action__rest', [])
-        if !empty(rest)
-            let next= rest[0]
-            let rest= rest[1:]
-
-            call unite#start([['javaimport', 'only=' . next, 'queue=' . join(rest, ',')]])
-        endif
     finally
         call setpos('.', javaimport#each('v:a + v:b', save_cursorpos, [0, 1, 0, 0]))
     endtry
