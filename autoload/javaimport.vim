@@ -1,8 +1,8 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/javaimport.vim
-" Last Change: 04-Aug-2014.
+" Last Change: 05-Aug-2014.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
-" License:     The MIT License (MIT) {{{
+" License:     The MIT License (MIT)
 " 
 "              Copyright (c) 2013 kamichidu
 "
@@ -26,7 +26,6 @@
 "              WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 "              FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 "              OTHER DEALINGS IN THE SOFTWARE.
-" }}}
 " ----------------------------------------------------------------------------
 let s:save_cpo= &cpo
 set cpo&vim
@@ -89,7 +88,7 @@ let s:jclasspath= javaclasspath#get()
 "       }, 
 "   ]
 ""
-function! javaimport#import_config() " {{{
+function! javaimport#import_config()
     let l:result= s:parse_javaimport()
     let l:jclasspath_parsed= s:jclasspath.parse()
 
@@ -114,9 +113,8 @@ function! javaimport#import_config() " {{{
 
     return l:result
 endfunction
-" }}}
 
-function! s:parse_javaimport() " {{{
+function! s:parse_javaimport()
     if !filereadable('.javaimport')
         return []
     endif
@@ -152,7 +150,7 @@ function! s:parse_javaimport() " {{{
 
     return l:result
 endfunction
-" }}}
+
 
 """
 " javadocのurlを得る
@@ -162,7 +160,7 @@ endfunction
 " @return
 "   canonical_nameのjavadoc url
 ""
-function! javaimport#to_javadoc_url(base_url, canonical_name) " {{{
+function! javaimport#to_javadoc_url(base_url, canonical_name)
     " TODO: more effective implementation.
     let l:elms= split(a:canonical_name, '\.')
 
@@ -177,7 +175,6 @@ function! javaimport#to_javadoc_url(base_url, canonical_name) " {{{
 
     return l:result.'html'
 endfunction
-" }}}
 
 """
 " 2つのListの各要素について、exprを評価した結果を新しいListに格納して返す
@@ -189,7 +186,7 @@ endfunction
 "   lhsとrhsの各要素について、exprの評価結果を格納したList
 " @throw lhsもしくはrhsがListでなかった場合、lhsとrhsの要素数が一致しない場合
 ""
-function! javaimport#each(expr, lhs, rhs) " {{{
+function! javaimport#each(expr, lhs, rhs)
     if !(type(a:lhs) == type(a:rhs) && type(a:lhs) == type([]) && len(a:lhs) == len(a:rhs))
         throw 'illegal argument'
     endif
@@ -205,13 +202,12 @@ function! javaimport#each(expr, lhs, rhs) " {{{
     endfor
     return l:result
 endfunction
-" }}}
 
 """
 " clear cache.
 "
 ""
-function! javaimport#clear_cache() " {{{
+function! javaimport#clear_cache()
     let l:cachedir= g:javaimport_config.cache_dir
 
     " check exist
@@ -221,17 +217,15 @@ function! javaimport#clear_cache() " {{{
 
     call s:FILE.rmdir(l:cachedir, 'r')
 endfunction
-" }}}
 
 """
 " check existing cache for config.
 "
 " @param config
 ""
-function! javaimport#has_cache(config) " {{{
+function! javaimport#has_cache(config)
     return s:CACHE.filereadable(g:javaimport_config.cache_dir, a:config.path)
 endfunction
-" }}}
 
 """
 " read candidates from cache.
@@ -239,7 +233,7 @@ endfunction
 " @param config
 " @return [{success}, {data}]
 ""
-function! javaimport#read_cache(config) " {{{
+function! javaimport#read_cache(config)
     let l:cachedir= g:javaimport_config.cache_dir
 
     call s:CACHE.check_old_cache(l:cachedir, a:config.path)
@@ -261,7 +255,6 @@ function! javaimport#read_cache(config) " {{{
 
     return l:cache.data
 endfunction
-" }}}
 
 """
 " write items to cache.
@@ -269,7 +262,7 @@ endfunction
 " @param config
 " @param items
 ""
-function! javaimport#write_cache(config, items) " {{{
+function! javaimport#write_cache(config, items)
     let l:cachedir= g:javaimport_config.cache_dir
 
     call s:CACHE.deletefile(l:cachedir, a:config.path)
@@ -280,7 +273,6 @@ function! javaimport#write_cache(config, items) " {{{
     \   'data': a:items,
     \})])
 endfunction
-" }}}
 
 """
 " sort import statements on current buffer.
@@ -297,7 +289,7 @@ endfunction
 "   import org.apache.commons.lang.StringUtils;
 "
 ""
-function! javaimport#sort_import_statements() " {{{
+function! javaimport#sort_import_statements()
     let l:save_pos= getpos('.')
     try
         " gather already existed import statements
@@ -333,14 +325,13 @@ function! javaimport#sort_import_statements() " {{{
         call setpos('.', l:save_pos)
     endtry
 endfunction
-" }}}
 
 """
 " show javadoc by url on the new buffer.
 "
 " @param url javadoc url
 ""
-function! javaimport#preview(url) " {{{
+function! javaimport#preview(url)
     " call s:BM.open('javadoc preview', {'range': 'current'})
 
     " setlocal bufhidden=hide buftype=nofile noswapfile nobuflisted readonly
@@ -354,7 +345,6 @@ function! javaimport#preview(url) " {{{
         throw 'unite-javaimport: illegal configuration (g:javaimport_config.preview_using): ' . l:using
     endif
 endfunction
-" }}}
 
 function! javaimport#build_args(args)
     let result= {}
@@ -373,15 +363,14 @@ endfunction
 "
 " @param simple_name simple classname (aka. class name without package name)
 ""
-function! javaimport#quickimport(simple_name) " {{{
+function! javaimport#quickimport(simple_name)
     call unite#start([['javaimport/class', 'only=' . a:simple_name]])
 endfunction
-" }}}
 
 """
 " remove unnecessary import statements from current buffer.
 ""
-function! javaimport#remove_unnecesarries() " {{{
+function! javaimport#remove_unnecesarries()
     let l:save_pos= getpos('.')
     try
         " gather already existed import statements
@@ -414,14 +403,13 @@ function! javaimport#remove_unnecesarries() " {{{
         call setpos('.', l:save_pos)
     endtry
 endfunction
-" }}}
 
 """
 " add import statements for classnames on current buffer.
 "
 " @param classnames will be imported
 ""
-function! javaimport#add_import_statements(classnames) " {{{
+function! javaimport#add_import_statements(classnames)
     let l:save_cursorpos= getpos('.')
     try
         let l:imported_classes= javaimport#imported_classes()
@@ -458,14 +446,13 @@ function! javaimport#add_import_statements(classnames) " {{{
         call setpos('.', javaimport#each('v:a + v:b', l:save_cursorpos, [0, 1, 0, 0]))
     endtry
 endfunction
-" }}}
 
 """
 " get some imported classnames (canonical names) from current buffer.
 "
 " @return list of string
 ""
-function! javaimport#imported_classes() " {{{
+function! javaimport#imported_classes()
     let l:save_pos= getpos('.')
     try
         let l:region= javaimport#region_of_import_statements()
@@ -484,7 +471,6 @@ function! javaimport#imported_classes() " {{{
         call setpos('.', l:save_pos)
     endtry
 endfunction
-" }}}
 
 """
 " get a region of import statements.
@@ -492,7 +478,7 @@ endfunction
 "
 " @return tuple of [lnum, lnum]
 ""
-function! javaimport#region_of_import_statements() " {{{
+function! javaimport#region_of_import_statements()
     let l:save_pos= getpos('.')
     try
         call setpos('.', [0, 1, 1, 0])
@@ -506,7 +492,6 @@ function! javaimport#region_of_import_statements() " {{{
         call setpos('.', l:save_pos)
     endtry
 endfunction
-" }}}
 
 function! javaimport#server()
     if exists('s:server')
@@ -525,6 +510,3 @@ endfunction
 
 let &cpo= s:save_cpo
 unlet s:save_cpo
-
-" vim:foldenable:foldmethod=marker
-

@@ -47,7 +47,7 @@ function! s:to_class_name_for_javadoc(li_of_class)
     return substitute(l:html, '/', '.', 'g')
 endfunction
 
-function! s:new_candidate(config, canonical_name) " {{{
+function! s:new_candidate(config, canonical_name)
     let l:javadoc_url= ''
 
     if !empty(a:config.javadoc)

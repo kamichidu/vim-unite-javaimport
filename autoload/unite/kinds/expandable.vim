@@ -1,8 +1,8 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/unite/kinds/expandable.vim
-" Last Change: 30-Dec-2013.
+" Last Change: 05-Aug-2014.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
-" License:     The MIT License (MIT) {{{
+" License:     The MIT License (MIT)
 " 
 "              Copyright (c) 2013 kamichidu
 "
@@ -26,7 +26,6 @@
 "              WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 "              FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 "              OTHER DEALINGS IN THE SOFTWARE.
-" }}}
 " ----------------------------------------------------------------------------
 let s:save_cpo = &cpo
 set cpo&vim
@@ -38,16 +37,16 @@ let s:kind = {
 \   'action_table':   {},
 \}
 
-function! unite#kinds#expandable#define() " {{{
+function! unite#kinds#expandable#define()
     return s:kind
 endfunction
-" }}}
+
 let s:kind.action_table.expand= {
 \   'description'  : 'open new unite buffer with selected word.',
 \   'is_selectable': 0,
 \   'is_start': 1,
 \}
-function! s:kind.action_table.expand.func(candidate) " {{{
+function! s:kind.action_table.expand.func(candidate)
     call unite#start_script(
     \   [
     \       [
@@ -58,9 +57,6 @@ function! s:kind.action_table.expand.func(candidate) " {{{
     \   ],
     \)
 endfunction
-" }}}
 
 let &cpo = s:save_cpo
 unlet s:save_cpo
-
-" vim:foldenable:foldmethod=marker

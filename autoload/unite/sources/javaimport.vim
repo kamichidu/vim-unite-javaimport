@@ -2,7 +2,7 @@
 " File:        autoload/unite/sources/javaimport.vim
 " Last Change: 05-Aug-2014.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
-" License:     The MIT License (MIT) {{{
+" License:     The MIT License (MIT)
 " 
 "              Copyright (c) 2013 kamichidu
 "
@@ -26,7 +26,6 @@
 "              WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 "              FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 "              OTHER DEALINGS IN THE SOFTWARE.
-" }}}
 " ----------------------------------------------------------------------------
 let s:save_cpo= &cpo
 set cpo&vim
@@ -253,5 +252,3 @@ endfunction
 
 let &cpo= s:save_cpo
 unlet s:save_cpo
-
-" vim:foldenable:foldmethod=marker

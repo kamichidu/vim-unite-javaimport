@@ -2,7 +2,7 @@
 " File:        autoload/unite/kinds/javatype.vim
 " Last Change: 05-Aug-2014.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
-" License:     The MIT License (MIT) {{{
+" License:     The MIT License (MIT)
 " 
 "              Copyright (c) 2013 kamichidu
 "
@@ -26,7 +26,6 @@
 "              WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 "              FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 "              OTHER DEALINGS IN THE SOFTWARE.
-" }}}
 " ----------------------------------------------------------------------------
 let s:save_cpo = &cpo
 set cpo&vim
@@ -38,15 +37,15 @@ let s:kind = {
 \   'action_table':   {},
 \}
 
-function! unite#kinds#javatype#define() " {{{
+function! unite#kinds#javatype#define()
     return s:kind
 endfunction
-" }}}
+
 let s:kind.action_table.import= {
 \   'description'  : 'add import statement to this buffer.',
 \   'is_selectable': 1,
 \}
-function! s:kind.action_table.import.func(candidates) " {{{
+function! s:kind.action_table.import.func(candidates)
     let save_cursorpos= getpos('.')
     try
         let canonical_names= map(deepcopy(a:candidates), 'v:val.action__canonical_name')
@@ -57,19 +56,19 @@ function! s:kind.action_table.import.func(candidates) " {{{
         call setpos('.', javaimport#each('v:a + v:b', save_cursorpos, [0, 1, 0, 0]))
     endtry
 endfunction
-" }}}
+
 let s:kind.action_table.preview= {
 \   'description'  : 'show javadoc if presented.',
 \   'is_quit': 0,
 \}
-function! s:kind.action_table.preview.func(candidate) " {{{
+function! s:kind.action_table.preview.func(candidate)
     if empty(a:candidate.action__javadoc_url)
         return
     endif
 
     call javaimport#preview(a:candidate.action__javadoc_url)
 endfunction
-" }}}
+
 let s:kind.action_table.static_import= {
 \   'description': 'open new unite buffer for static import',
 \   'is_quit': 0,
@@ -90,5 +89,3 @@ endfunction
 
 let &cpo = s:save_cpo
 unlet s:save_cpo
-
-" vim:foldenable:foldmethod=marker
