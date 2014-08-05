@@ -59,17 +59,21 @@ function! s:server.request(data)
     \}
 endfunction
 
+let s:header= ''
+let s:responsestr= ''
 function! s:server.receive(ticket)
     let socket= self.socket()
-    let header= socket.read(8)
+    let s:header.= socket.read(8 - len(split(s:header, '\zs')))
 
     " read a new response
-    if len(split(header, '\zs')) == 8
-        let length= str2nr(header, 16)
-        let responsestr= socket.read(length)
+    if len(split(s:header, '\zs')) == 8
+        let length= str2nr(s:header, 16)
+        let s:responsestr.= socket.read(length - len(split(s:responsestr, '\zs')))
 
-        if len(split(responsestr, '\zs')) == length
-            let self.past_response+= [s:J.decode(responsestr)]
+        if len(split(s:responsestr, '\zs')) == length
+            let self.past_response+= [s:J.decode(s:responsestr)]
+            let s:header= ''
+            let s:responsestr= ''
         endif
     endif
 
