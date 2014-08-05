@@ -27,41 +27,66 @@ let s:source= {
 \}
 
 function! s:source.gather_classes(config, context)
-    let l:fullpath= fnamemodify(a:config.path, ':p')
-    let l:cmd= join(
-    \   [
-    \       get(a:config, 'ctags', 'ctags'),
-    \       '-f -',
-    \       '--language-force=java',
-    \       '--langmap=Java:.java',
-    \       '--java-kinds=cgi',
-    \       '--recurse=yes',
-    \       '--extra=q',
-    \       l:fullpath,
-    \   ],
-    \   ' '
-    \)
-    let l:outputs= split(s:P.system(l:cmd), "\n")
+    let tags= s:execute_ctags(a:config.path)
 
-    " filter if non-public
-    let l:tags= map(l:outputs, 'split(v:val, "\t")')
-    let l:tags= map(l:tags, '{"tag": v:val[0], "filename": v:val[1], "declaration": v:val[2]}')
-    let l:tags= filter(l:tags, 'v:val.declaration =~# ''\<public\>''')
+    return map(tags, "
+    \   {
+    \       'word':           v:val.package . '.' . v:val.class,
+    \       'canonical_name': v:val.package . '.' . v:val.class,
+    \       'simple_name':    v:val.class,
+    \       'javadoc_url':    '',
+    \       'jar_path':       '',
+    \   }
+    \")
+endfunction
 
-    " make filename to package
-    for l:tag in l:tags
-        let l:package= l:tag.filename
-        " remove path to dir
-        let l:package= substitute(l:package, l:fullpath, '', '')
-        " remove base filename
-        let l:package= substitute(l:package, '[/\\]\w\+\.java$', '', '')
-        " replace / to .
-        let l:package= substitute(l:package, '[/\\]\+', '.', 'g')
+function! s:execute_ctags(path)
+    let save_cwd= getcwd()
+    try
+        execute 'lcd' a:path
+        let cmd= join(
+        \   [
+        \       'ctags',
+        \       '-f', '-',
+        \       '--langmap=Java:.java',
+        \       '--java-kinds=cgi',
+        \       '--recurse=yes',
+        \       '--extra=q',
+        \   ],
+        \   ' '
+        \)
+        let output= map(split(vimproc#system(cmd), '\%(\r\n\|\r\|\n\)'), 'split(v:val, "\t", 1)')
 
-        let l:tag.package= l:package
-    endfor
+        let tags= []
 
-    return map(map(l:tags, 'v:val.package . "." . v:val.tag'), 's:new_candidate(a:config, v:val)')
+        for tag in output
+            let [tagname, tagfile, tagaddress, tagkind]= tag[0 : 3]
+
+            let package= tagfile
+            let package= substitute(package, '\c\.java$', '', '')
+            let package= substitute(package, '\%(/\|\\\)\+', '.', 'g')
+            let package= substitute(package, '^\.\+', '', '')
+            let package= substitute(package, '\C\.' . tagname . '$', '', '')
+
+            let modifiers= {
+            \   'is_public':    match(tagaddress, '\C\<public\>') != -1,
+            \   'is_protected': match(tagaddress, '\C\<protected\>') != -1,
+            \   'is_private':   match(tagaddress, '\C\<private\>') != -1,
+            \}
+
+            let tags+= [{
+            \   'class':     tagname,
+            \   'package':   package,
+            \   'modifiers': modifiers,
+            \   'kind':      tagkind,
+            \   'file':      fnamemodify(tagfile, ':p'),
+            \}]
+        endfor
+
+        return tags
+    finally
+        execute 'lcd' save_cwd
+    endtry
 endfunction
 
 function! javaimport#source#directory#define()
