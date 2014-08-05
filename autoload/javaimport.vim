@@ -186,6 +186,7 @@ endfunction
 "   lhsとrhsの各要素について、exprの評価結果を格納したList
 " @throw lhsもしくはrhsがListでなかった場合、lhsとrhsの要素数が一致しない場合
 ""
+" Deprecated: find a way
 function! javaimport#each(expr, lhs, rhs)
     if !(type(a:lhs) == type(a:rhs) && type(a:lhs) == type([]) && len(a:lhs) == len(a:rhs))
         throw 'illegal argument'
