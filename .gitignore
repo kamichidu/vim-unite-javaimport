@@ -1,2 +1,5 @@
 javaimport/target/
-
+.bundle/
+.vim-flavor/
+.vim-test/
+*.lock
