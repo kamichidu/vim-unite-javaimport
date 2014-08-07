@@ -78,7 +78,13 @@ function! s:source.async_gather_candidates(args, context)
     endif
 
     let task= s:L.shift(a:context.source__sources)
-    let classes= task.source.gather_classes(task.config, a:context)
+    let response= task.source.gather_classes(task.config, a:context)
+
+    if response.call_later
+        call s:L.push(a:context.source__sources, task)
+    endif
+
+    let classes= response.classes
 
     let args= javaimport#build_args(a:args)
 

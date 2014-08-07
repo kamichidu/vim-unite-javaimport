@@ -29,15 +29,18 @@ let s:source= {
 function! s:source.gather_classes(config, context)
     let tags= s:execute_ctags(a:config.path)
 
-    return map(tags, "
-    \   {
-    \       'word':           v:val.package . '.' . v:val.class,
-    \       'canonical_name': v:val.package . '.' . v:val.class,
-    \       'simple_name':    v:val.class,
-    \       'javadoc_url':    '',
-    \       'jar_path':       '',
-    \   }
-    \")
+    let response= {
+    \   'call_later': 0,
+    \   'classes': map(tags, "
+    \       {
+    \           'word':           v:val.package . '.' . v:val.class,
+    \           'canonical_name': v:val.package . '.' . v:val.class,
+    \           'simple_name':    v:val.class,
+    \           'javadoc_url':    '',
+    \           'jar_path':       '',
+    \       }
+    \   "),
+    \}
 endfunction
 
 function! s:execute_ctags(path)

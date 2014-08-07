@@ -35,15 +35,18 @@ function! s:source.gather_classes(config, context)
 
     let [output, error]= self.wait_and_read()
 
-    return map(split(output, '\r\=\n'), "
-    \   {
-    \       'word':           v:val,
-    \       'canonical_name': v:val,
-    \       'simple_name':    v:val,
-    \       'javadoc_url':    '',
-    \       'jar_path':       a:config.path,
-    \   }
-    \")
+    return {
+    \   'call_later': 0,
+    \   'classes': map(split(output, '\r\=\n'), "
+    \       {
+    \           'word':           v:val,
+    \           'canonical_name': v:val,
+    \           'simple_name':    v:val,
+    \           'javadoc_url':    '',
+    \           'jar_path':       a:config.path,
+    \       }
+    \   "),
+    \}
 endfunction
 
 function! s:source.launch()

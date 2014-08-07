@@ -30,34 +30,40 @@ let s:javadoc= {
 \}
 
 function! s:javadoc.gather_classes(config, context)
-    let l:response= s:H.get(a:args.path.'/allclasses-noframe.html')
+    let response= s:H.get(a:args.path.'/allclasses-noframe.html')
 
-    if !l:response.success
-        return []
+    if !response.success
+        return {
+        \   'call_later': 0,
+        \   'classes':    [],
+        \}
     endif
 
-    let l:li_of_classes= filter(split(l:response.content, "\n"), 'v:val =~# "^<li>.*</li>$"')
+    let li_of_classes= filter(split(response.content, "\n"), 'v:val =~# "^<li>.*</li>$"')
 
-    return map(l:li_of_classes, 's:new_candidate(a:config, s:to_class_name_for_javadoc(v:val))')
+    return {
+    \   'call_later': 0,
+    \   'classes':    map(li_of_classes, 's:new_candidate(a:config, s:to_class_name_for_javadoc(v:val))'),
+    \}
 endfunction
 
 function! s:to_class_name_for_javadoc(li_of_class)
-    let l:html= substitute(a:li_of_class, '^.*\<href\>="\([a-zA-Z0-9/\._]\+\)\.html".*$', '\1', '')
+    let html= substitute(a:li_of_class, '^.*\<href\>="\([a-zA-Z0-9/\._]\+\)\.html".*$', '\1', '')
 
-    return substitute(l:html, '/', '.', 'g')
+    return substitute(html, '/', '.', 'g')
 endfunction
 
 function! s:new_candidate(config, canonical_name)
-    let l:javadoc_url= ''
+    let javadoc_url= ''
 
     if !empty(a:config.javadoc)
-        let l:javadoc_url= javaimport#to_javadoc_url(a:config.javadoc, a:canonical_name)
+        let javadoc_url= javaimport#to_javadoc_url(a:config.javadoc, a:canonical_name)
     endif
 
     return {
     \   'word'          : a:canonical_name,
     \   'canonical_name': a:canonical_name,
-    \   'javadoc_url'   : l:javadoc_url,
+    \   'javadoc_url'   : javadoc_url,
     \   'jar_path':     : '',
     \}
 endfunction
