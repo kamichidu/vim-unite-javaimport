@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/javaimport.vim
-" Last Change: 05-Aug-2014.
+" Last Change: 06-Aug-2014.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT)
 " 
@@ -276,58 +276,6 @@ function! javaimport#write_cache(config, items)
 endfunction
 
 """
-" sort import statements on current buffer.
-"
-" before:
-"   import java.util.Map;
-"   import java.util.Collection;
-"   import org.apache.commons.lang.StringUtils;
-"
-" after:
-"   import java.util.Collection;
-"   import java.util.Map;
-"
-"   import org.apache.commons.lang.StringUtils;
-"
-""
-function! javaimport#sort_import_statements()
-    let l:save_pos= getpos('.')
-    try
-        " gather already existed import statements
-        let l:region= javaimport#region_of_import_statements()
-
-        if l:region ==# [0, 0]
-            return
-        endif
-
-        let l:classes= javaimport#imported_classes()
-
-        call sort(l:classes)
-
-        " separate each statements on defferent top-level domain
-        let l:statements= []
-        let l:last_domain= matchstr(l:classes[0], '^\w\+')
-        for l:class in l:classes
-            let l:domain= matchstr(l:class, '^\w\+')
-
-            if l:domain !=# l:last_domain
-                call add(l:statements, '')
-            endif
-
-            call add(l:statements, printf('import %s;', l:class))
-
-            let l:last_domain= l:domain
-        endfor
-
-        execute l:region[0] . ',' . l:region[1] . 'delete _'
-
-        call append(l:region[0] - 1, l:statements)
-    finally
-        call setpos('.', l:save_pos)
-    endtry
-endfunction
-
-"""
 " show javadoc by url on the new buffer.
 "
 " @param url javadoc url
@@ -369,39 +317,62 @@ function! javaimport#quickimport(simple_name)
 endfunction
 
 """
+" sort import statements on current buffer.
+"
+" before:
+"   import java.util.Map;
+"   import java.util.Collection;
+"   import org.apache.commons.lang.StringUtils;
+"
+" after:
+"   import java.util.Collection;
+"   import java.util.Map;
+"
+"   import org.apache.commons.lang.StringUtils;
+"
+""
+function! javaimport#sort_import_statements()
+    let manager= javaimport#import_manager#new()
+
+    call manager.sort()
+endfunction
+
+"""
 " remove unnecessary import statements from current buffer.
 ""
 function! javaimport#remove_unnecesarries()
-    let l:save_pos= getpos('.')
+    let save_pos= getpos('.')
     try
-        " gather already existed import statements
-        let l:region= javaimport#region_of_import_statements()
+        let manager= javaimport#import_manager#new()
 
-        if l:region ==# [0, 0]
+        " gather already existed import statements
+        let [slnum, elnum]= manager.region()
+
+        if [slnum, elnum] == [0, 0]
             return
         endif
 
-        let l:classes= javaimport#imported_classes()
+        let classes= manager.imported_classes()
 
         " delete old import statements
-        execute l:region[0] . ',' . l:region[1] . 'delete _'
+        execute slnum . ',' . elnum . 'delete _'
 
+        let remainings= []
         " find unnecessary statements
-        let l:statements= []
-        for l:class in l:classes
-            let l:simple_name= matchstr(l:class, '\.\zs\w\+$')
+        for class in classes
+            let simple_name= matchstr(class, '\.\zs\w\+$')
 
             " move cursor to 1st line
             call setpos('.', ['%', 1, 1, 0])
-            if search('\C\<' . l:simple_name . '\>', 'nW') !=# 0
-                call add(l:statements, 'import ' . l:class . ';')
+            if search('\C\<' . simple_name . '\>', 'nW') != 0
+                let remainings+= [class]
             endif
         endfor
 
         " append new import statements
-        call append(l:region[0] - 1, l:statements)
+        call manager.add(remainings)
     finally
-        call setpos('.', l:save_pos)
+        call setpos('.', save_pos)
     endtry
 endfunction
 
@@ -411,41 +382,9 @@ endfunction
 " @param classnames will be imported
 ""
 function! javaimport#add_import_statements(classnames)
-    let l:save_cursorpos= getpos('.')
-    try
-        let l:imported_classes= javaimport#imported_classes()
-        let l:statements= []
+    let manager= javaimport#import_manager#new()
 
-        for l:classname in s:L.uniq(a:classnames)
-            if !s:L.has(l:imported_classes, l:classname)
-                call add(l:statements, printf('import %s;', l:classname))
-            endif
-        endfor
-
-        if empty(l:statements)
-            return
-        endif
-
-        " find lnum to be added
-        let l:region= javaimport#region_of_import_statements()
-        let l:added_lnum= 0
-        if l:region !=# [0, 0]
-            " 1st lnum of existing imports
-            let l:added_lnum= l:region[0]
-        else
-            " find center of "package decl" and "class decl" if not exist imports
-            call setpos('.', [0, 1, 1, 0])
-            let l:package_decl_lnum= search('^\s*package\>', 'cnW')
-
-            if l:package_decl_lnum !=# 0
-                let l:added_lnum= l:package_decl_lnum + 1
-            endif
-        endif
-
-        call append(l:added_lnum, l:statements)
-    finally
-        call setpos('.', javaimport#each('v:a + v:b', l:save_cursorpos, [0, 1, 0, 0]))
-    endtry
+    call manager.add(a:classnames)
 endfunction
 
 """
@@ -454,44 +393,9 @@ endfunction
 " @return list of string
 ""
 function! javaimport#imported_classes()
-    let l:save_pos= getpos('.')
-    try
-        let l:region= javaimport#region_of_import_statements()
+    let manager= javaimport#import_manager#new()
 
-        if l:region ==# [0, 0]
-            return []
-        endif
-
-        let l:classes= getbufline('%', l:region[0], l:region[1])
-        let l:classes= filter(l:classes, 'v:val =~# ''^\s*\<import\>''')
-        let l:classes= map(l:classes, 'matchstr(v:val, ''^\s*import\s\+\<\zs[^;]\+\ze'')')
-        let l:classes= s:L.uniq(l:classes)
-
-        return l:classes
-    finally
-        call setpos('.', l:save_pos)
-    endtry
-endfunction
-
-"""
-" get a region of import statements.
-" return [0, 0] if not found any import statement.
-"
-" @return tuple of [lnum, lnum]
-""
-function! javaimport#region_of_import_statements()
-    let l:save_pos= getpos('.')
-    try
-        call setpos('.', [0, 1, 1, 0])
-        let l:start_lnum= search('^\s*\<import\>', 'cn')
-
-        call setpos('.', [0, line('$'), 1, 0])
-        let l:end_lnum= search('^\s*\<import\>', 'cnb')
-
-        return [l:start_lnum, l:end_lnum]
-    finally
-        call setpos('.', l:save_pos)
-    endtry
+    return manager.imported_classes()
 endfunction
 
 function! javaimport#server()
