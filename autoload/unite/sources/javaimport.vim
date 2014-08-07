@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/unite/sources/javaimport.vim
-" Last Change: 05-Aug-2014.
+" Last Change: 07-Aug-2014.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT)
 " 
@@ -34,11 +34,20 @@ let s:L= javaimport#Data_List()
 let s:J= javaimport#Web_JSON()
 let s:M= javaimport#Vim_Message()
 
-let s:class_sources= {
-\   'jar':       javaimport#source#jar#define(),
-\   'directory': javaimport#source#directory#define(),
-\   'javadoc':   javaimport#source#javadoc#define(),
-\}
+let s:class_sources= {}
+
+for s:path in split(globpath(&runtimepath, 'autoload/javaimport/source/*.vim'), '\%(\r\n\|\r\|\n\)')
+    let s:fname= fnamemodify(s:path, ':t:r')
+
+    try
+        let s:source= javaimport#source#{s:fname}#define()
+
+        let s:class_sources[s:source.name]= s:source
+    catch
+        call s:M.warn(printf("javaimport: read failed `%s'", s:path))
+    endtry
+endfor
+unlet s:path s:fname s:source
 
 let s:source= {
 \   'name'           : 'javaimport',
