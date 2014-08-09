@@ -1,8 +1,8 @@
 *unite-javaimport.txt*
 
-Version: 0.11
+Version: 0.20
 Author:  kamichidu <c.kamunagi@gmail.com>
-Last Change: 26-Jul-2014.
+Last Change: 10-Aug-2014.
 License: The MIT License (MIT)
 
 Copyright (c) 2013-2014 kamichidu
@@ -40,19 +40,23 @@ this plugin is an unite source for importing java classes.
 
 TODO
 
-DEPENDENCIES ~
+Dependencies ~
 
-    * https://github.com/Shougo/unite.vim (required)
-    * Java Runtime Environment (JRE) 1.6 or above (required)
-    * https://github.com/yuratomo/w3m.vim (optional, to preview javadoc)
-    * Exuberant Ctags (required)
+    * https://github.com/Shougo/unite.vim            (required)
+    * https://github.com/Shougo/vimproc.vim          (required)
+    * https://github.com/kamichidu/vim-javaclasspath (required)
+    * https://github.com/kamichidu/vim-javalang      (required)
+    * Java Runtime Environment (JRE) 1.7 or above    (required)
+    * Exuberant Ctags                                (required)
+    * https://github.com/yuratomo/w3m.vim            (optional)
+        this will be used to preview javadoc.
 
 ==============================================================================
 INSTALL                                             *unite-javaimport-install*
 
 first you have to install
 
-    1. Java Runtime Environment 1.6 or above
+    1. Java Runtime Environment 1.7 or above
     1. Exuberant Ctags 5.8 or above
 
 second you install this plugin. if you use |neobundle|, you can install this
@@ -62,6 +66,7 @@ plugin easily.
     NeoBundle 'KamunagiChiduru/unite-javaimport', {
     \   'depends': [
     \       'Shougo/unite.vim',
+    \       'Shougo/vimproc.vim',
     \       'KamunagiChiduru/vim-javaclasspath',
     \       'KamunagiChiduru/vim-javalang',
     \   ],
@@ -71,6 +76,7 @@ plugin easily.
     NeoBundle 'KamunagiChiduru/unite-javaimport', {
     \   'depends': [
     \       'Shougo/unite.vim',
+    \       'Shougo/vimproc.vim',
     \       'KamunagiChiduru/vim-javaclasspath',
     \       'KamunagiChiduru/vim-javalang',
     \       'yuratomo/w3m.vim',
@@ -80,7 +86,11 @@ plugin easily.
 ==============================================================================
 INTERFACE                                         *unite-javaimport-interface*
 
-UNITE ~
+Unite ~
+
+    NOTE: A javaimport source is deprecated. Use javaimport/class source or
+    other new sources instead of, please. A javaimport source will be removed
+    in the future release.
 
     to show all importable classes by your classpath (by your .javaimport),
     execute |:Unite| command with "javaimport" as a source parameter.
@@ -99,7 +109,16 @@ UNITE ~
             a class name for filtering to gather classes.
             will gather only passed class name with different packages only.
 
-COMMAND ~
+                                                    *unite-javaimport-sources*
+Unite Sources ~
+                                               *unite-javaimport-source-class*
+javaimport/class
+    list all importable classes. it will uses |vim-javaclasspath| to detect
+    your classpath.
+>
+    :Unite javaimport/class
+<
+Command ~
 
     :JavaImportClearCache                              *:JavaImportClearCache*
         clear all cache.
@@ -110,13 +129,13 @@ COMMAND ~
     :JavaImportRemoveUnnecessaries            *:JavaImportRemoveUnnecessaries*
         remove unnecessary import statements from current buffer.
 
-MAPPING~
+Mapping~
 
     <Plug>(javaimport-quickimport)            *<Plug>(javaimport-quickimport)*
         invoke |unite-javaimport| with "only" argument.
         (default key map: <Leader>I)
 
-VARIABLE~
+Variable~
 
     g:javaimport_use_default_mapping        *g:javaimport_use_default_mapping*
         this variable type is a |Number|. if 1 has set |unite-javaimport| will
@@ -136,12 +155,36 @@ VARIABLE~
             "lynx" was set you got an error (since this feature is
             unimplemented yet).
 
+        server
+            it's |Dictionary| value. keys are:
+
+            vm
+                it's |String| value. this is used to launch the
+                javaimport-server application.
+                (default on *nix:    $JAVA_HOME/bin/java)
+                (default on windows: $JAVA_HOME/bin/javaw)
+            host
+                it's |String| value. it's a host name which javaimport-server
+                is running or will be run.
+                (default: localhost)
+            port
+                it's |Number| value. it's a port number which
+                javaimport-server listening to or will be listen.
+                (default: 51234)
+            lockfile
+                it's |String| value. it's a lockfile for javaimport-server.
+                (default: g:javaimport_config.cache_dir . '/server.lock')
+
 ==============================================================================
 HOW TO USE                                         *unite-javaimport-howtouse*
 
 configure classpath using |vim-javaclasspath|.
 or you can write .javaimport to your current directory (project root
 dictionary).
+
+NOTE: configuring using .javaimport is deprecated. It will drops .javaimport
+file format support in future release. Use |vim-javaclasspath| instead of
+.javaimport, please.
 
 an example for .javaimport below.
 >
@@ -182,6 +225,18 @@ ACKNOWLEDGEMENT                             *unite-javaimport-acknowledgement*
         Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 
     * args4j (http://args4j.kohsuke.org/)
+
+        MIT License (http://opensource.org/licenses/mit-license.php)
+
+    * Apache MINA (https://mina.apache.org/)
+
+        Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+
+    * JSONIC (http://jsonic.sourceforge.jp/)
+
+        Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+
+    * Lombok (http://projectlombok.org/)
 
         MIT License (http://opensource.org/licenses/mit-license.php)
 
