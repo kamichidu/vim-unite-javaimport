@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/unite/sources/javaimport.vim
-" Last Change: 07-Aug-2014.
+" Last Change: 10-Aug-2014.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT)
 " 
@@ -100,42 +100,42 @@ function! s:source.async_gather_candidates(args, context)
             call filter(classes, 'v:val.canonical_name =~# ''^\C' . package_regex . '\.[A-Z]''')
         endif
 
-        return map(classes,
-        \   '{' .
-        \   '   "word":   v:val.word,' .
-        \   '   "kind":   "javatype",' .
-        \   '   "source": "javaimport",' .
-        \   '   "action__canonical_name": v:val.canonical_name,' .
-        \   '   "action__javadoc_url":    v:val.javadoc_url,' .
-        \   '}'
-        \)
+        return map(classes, "
+        \   {
+        \      "word":   v:val.word,
+        \      "kind":   "javatype",
+        \      "source": "javaimport",
+        \      "action__canonical_name": v:val.canonical_name,
+        \      "action__javadoc_url":    v:val.javadoc_url,
+        \   }
+        \")
     elseif has_key(args, 'only')
         let simple_name= args.only
 
         call filter(classes, 'v:val.canonical_name =~# ''\C\.'' . simple_name . ''$''')
 
-        return map(classes,
-        \   '{' .
-        \   '   "word":   v:val.word,' .
-        \   '   "kind":   "javatype",' .
-        \   '   "source": "javaimport",' .
-        \   '   "action__canonical_name": v:val.canonical_name,' .
-        \   '   "action__javadoc_url":    v:val.javadoc_url,' .
-        \   '}'
-        \)
+        return map(classes, "
+        \   {
+        \      "word":   v:val.word,
+        \      "kind":   "javatype",
+        \      "source": "javaimport",
+        \      "action__canonical_name": v:val.canonical_name,
+        \      "action__javadoc_url":    v:val.javadoc_url,
+        \   }
+        \")
     else
         let packages= map(classes, 'matchstr(v:val.canonical_name, ''\C[a-z][a-z0-9_]*\%(\.[a-z][a-z0-9_]*\)*'')')
 
         let packages= s:L.uniq(packages)
 
-        return map(packages,
-        \   '{' .
-        \   '   "word":   v:val,' .
-        \   '   "kind":   "expandable",' .
-        \   '   "source": self.name,' .
-        \   '   "action__package": v:val,' .
-        \   '}'
-        \)
+        return map(packages, "
+        \   {
+        \      "word":   v:val,
+        \      "kind":   "expandable",
+        \      "source": self.name,
+        \      "action__package": v:val,
+        \   }
+        \")
     endif
 endfunction
 
@@ -167,9 +167,18 @@ function! s:allclasses.gather_candidates(args, context)
 
     let server= javaimport#server()
     let configs= javaimport#import_config()
+
+    let directory_configs= filter(copy(configs), 'v:val.type ==# "directory"')
+    let jar_configs= filter(copy(configs), 'v:val.type ==# "jar"')
+    " XXX: ignore javadoc configs
+    let javadoc_configs= filter(copy(configs), 'v:val.type ==# "javadoc"')
+    if !empty(javadoc_configs)
+        call s:M.warn("gathering classes from javadoc path (url) is deprecated, ignore it.")
+    endif
+
     let ticket= server.request({
     \   'command': 'classes',
-    \   'classpath': map(configs, 'v:val.path'),
+    \   'classpath': map(jar_configs, 'v:val.path'),
     \   'predicate': {
     \       'classname': regex_object,
     \       'modifiers': ['public'],
