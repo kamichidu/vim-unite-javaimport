@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        plugin/javaimport.vim
-" Last Change: 05-Aug-2014.
+" Last Change: 10-Aug-2014.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT)
 " 
@@ -35,7 +35,7 @@ let g:loaded_javaimport= 1
 let s:save_cpo= &cpo
 set cpo&vim
 
-let g:javaimport_version= '0.11'
+let g:javaimport_version= '0.20'
 
 if !exists('g:javaimport_use_default_mapping')
     let g:javaimport_use_default_mapping= 1
