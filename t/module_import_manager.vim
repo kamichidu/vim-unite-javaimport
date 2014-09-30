@@ -139,6 +139,53 @@ describe 'javaimport#import_manager'
         \]
     end
 
+    it 'adds a first import statement'
+        new
+        setfiletype java
+        read `='t/fixtures/NoImports.java'`
+
+        let obj= javaimport#import_manager#new()
+
+        call obj.add('java.util.Map')
+        let classes= obj.imported_classes()
+
+        Expect classes ==# ['java.util.Map']
+
+        Expect getline(1, '$') ==# [
+        \   'package hoge;',
+        \   '',
+        \   'import java.util.Map;',
+        \   '',
+        \   'class NoImports',
+        \   '{',
+        \   '}',
+        \]
+    end
+
+    it 'adds first import statements'
+        new
+        setfiletype java
+        read `='t/fixtures/NoImports.java'`
+
+        let obj= javaimport#import_manager#new()
+
+        call obj.add(['java.util.Map', 'java.util.List'])
+        let classes= obj.imported_classes()
+
+        Expect classes ==# ['java.util.List', 'java.util.Map']
+
+        Expect getline(1, '$') ==# [
+        \   'package hoge;',
+        \   '',
+        \   'import java.util.List;',
+        \   'import java.util.Map;',
+        \   '',
+        \   'class NoImports',
+        \   '{',
+        \   '}',
+        \]
+    end
+
     it 'adds a static import statement'
         new
         setfiletype java

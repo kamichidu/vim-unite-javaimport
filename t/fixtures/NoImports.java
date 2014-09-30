@@ -1,0 +1,4 @@
+package hoge;
+class NoImports
+{
+}

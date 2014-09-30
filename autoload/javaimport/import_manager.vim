@@ -95,10 +95,24 @@ function! s:prototype.add(classes)
     let save_pos= getpos('.')
     try
         let [slnum, _]= self.region()
+
         let before_classes= self.imported_classes()
         let after_classes= s:L.uniq(before_classes + classes)
 
+        " adjust margin
+        if !empty(getline(slnum))
+            call append(slnum, '')
+            let slnum+= 1
+        endif
+
         call append(slnum, map(after_classes, 'printf("import %s;", v:val)'))
+
+        " adjust margin
+        let [_, elnum]= self.region()
+
+        if !empty(getline(elnum + 1))
+            call append(elnum, '')
+        endif
 
         call self.sort()
     finally
@@ -151,7 +165,14 @@ function! s:prototype.region()
         call setpos('.', [0, line('$'), 1, 0])
         let elnum= search('\C^\s*\<import\>', 'cnb')
 
-        return [slnum, elnum]
+        if slnum != 0 && elnum != 0
+            return [slnum, elnum]
+        endif
+
+        call setpos('.', [0, 1, 1, 0])
+        let slnum= search('\C^\s*\<package\>', 'cn')
+
+        return [slnum, slnum]
     finally
         call setpos('.', save_pos)
     endtry
