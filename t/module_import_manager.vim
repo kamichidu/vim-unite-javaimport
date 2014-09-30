@@ -6,16 +6,17 @@ filetype plugin indent on
 
 describe 'javaimport#import_manager'
     before
-        new
-        setfiletype java
-        read `='t/fixtures/JsonMessageDecoder.java'`
     end
 
     after
         close!
     end
 
-    it 'can get import statement region'
+    it 'gets a import statement region'
+        new
+        setfiletype java
+        read `='t/fixtures/JsonMessageDecoder.java'`
+
         let obj= javaimport#import_manager#new()
 
         let region= obj.region()
@@ -23,7 +24,11 @@ describe 'javaimport#import_manager'
         Expect region == [3, 17]
     end
 
-    it 'can get imported classes'
+    it 'gets imported classes'
+        new
+        setfiletype java
+        read `='t/fixtures/JsonMessageDecoder.java'`
+
         let obj= javaimport#import_manager#new()
 
         let classes= obj.imported_classes()
@@ -42,7 +47,11 @@ describe 'javaimport#import_manager'
         \]
     end
 
-    it 'can get static imported fields or methods'
+    it 'gets static imported fields or methods'
+        new
+        setfiletype java
+        read `='t/fixtures/JsonMessageDecoder.java'`
+
         let obj= javaimport#import_manager#new()
 
         let fields_or_methods= obj.imported_statics()
@@ -50,7 +59,11 @@ describe 'javaimport#import_manager'
         Expect fields_or_methods ==# ['com.google.common.base.Preconditions.checkArgument']
     end
 
-    it 'can add import statement'
+    it 'adds a import statement'
+        new
+        setfiletype java
+        read `='t/fixtures/JsonMessageDecoder.java'`
+
         let obj= javaimport#import_manager#new()
 
         call obj.add('java.util.HashMap')
@@ -90,7 +103,11 @@ describe 'javaimport#import_manager'
         \]
     end
 
-    it 'can remove import statement'
+    it 'removes a import statement'
+        new
+        setfiletype java
+        read `='t/fixtures/JsonMessageDecoder.java'`
+
         let obj= javaimport#import_manager#new()
 
         call obj.remove('java.util.Map')
@@ -122,7 +139,11 @@ describe 'javaimport#import_manager'
         \]
     end
 
-    it 'can add static import statement'
+    it 'adds a static import statement'
+        new
+        setfiletype java
+        read `='t/fixtures/JsonMessageDecoder.java'`
+
         let obj= javaimport#import_manager#new()
 
         TODO
