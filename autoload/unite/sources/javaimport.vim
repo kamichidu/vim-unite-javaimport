@@ -1,6 +1,6 @@
 " ----------------------------------------------------------------------------
 " File:        autoload/unite/sources/javaimport.vim
-" Last Change: 10-Aug-2014.
+" Last Change: 11-Oct-2014.
 " Maintainer:  kamichidu <c.kamunagi@gmail.com>
 " License:     The MIT License (MIT)
 " 
@@ -34,119 +34,14 @@ let s:L= javaimport#Data_List()
 let s:J= javaimport#Web_JSON()
 let s:M= javaimport#Vim_Message()
 
-let s:class_sources= {}
-
-for s:path in split(globpath(&runtimepath, 'autoload/javaimport/source/*.vim'), '\%(\r\n\|\r\|\n\)')
-    let s:fname= fnamemodify(s:path, ':t:r')
-
-    try
-        let s:source= javaimport#source#{s:fname}#define()
-
-        let s:class_sources[s:source.name]= s:source
-    catch
-        call s:M.warn(printf("javaimport: read failed `%s'", s:path))
-    endtry
-endfor
-unlet s:path s:fname s:source
-
-let s:source= {
-\   'name'           : 'javaimport',
-\   'description'    : 'candidates from classes in current classpath.',
-\   'sorters'        : ['sorter_word'],
-\   'max_candidates' : 100,
-\}
-
-function! s:source.gather_candidates(args, context)
-    let configs= javaimport#import_config()
-
-    let a:context.source__sources= map(deepcopy(configs), "
-    \   {
-    \       'source': s:class_sources[v:val.type],
-    \       'config': v:val,
-    \   }
-    \")
-
-    let a:context.is_async= !empty(a:context.source__sources)
-
-    return []
-endfunction
-
-function! s:source.async_gather_candidates(args, context)
-    if empty(a:context.source__sources)
-        let a:context.is_async= 0
-        return []
-    endif
-
-    let task= s:L.shift(a:context.source__sources)
-    let response= task.source.gather_classes(task.config, a:context)
-
-    if response.call_later
-        call s:L.push(a:context.source__sources, task)
-    endif
-
-    let classes= response.classes
-
-    let args= javaimport#build_args(a:args)
-
-    " show classes only called by expandable
-    " otherwise only packages (for speed, memory, anti stop the world)
-    if has_key(args, 'show_class') && args.show_class || has_key(args, '!')
-        let package_regex= get(args, 'package', '')
-
-        if !empty(package_regex)
-            let package_regex= substitute(package_regex, '\.', '\\.', 'g')
-
-            " filter by package name depends on naming convention
-            call filter(classes, 'v:val.canonical_name =~# ''^\C' . package_regex . '\.[A-Z]''')
-        endif
-
-        return map(classes, "
-        \   {
-        \      "word":   v:val.word,
-        \      "kind":   "javatype",
-        \      "source": "javaimport",
-        \      "action__canonical_name": v:val.canonical_name,
-        \      "action__javadoc_url":    v:val.javadoc_url,
-        \   }
-        \")
-    elseif has_key(args, 'only')
-        let simple_name= args.only
-
-        call filter(classes, 'v:val.canonical_name =~# ''\C\.'' . simple_name . ''$''')
-
-        return map(classes, "
-        \   {
-        \      "word":   v:val.word,
-        \      "kind":   "javatype",
-        \      "source": "javaimport",
-        \      "action__canonical_name": v:val.canonical_name,
-        \      "action__javadoc_url":    v:val.javadoc_url,
-        \   }
-        \")
-    else
-        let packages= map(classes, 'matchstr(v:val.canonical_name, ''\C[a-z][a-z0-9_]*\%(\.[a-z][a-z0-9_]*\)*'')')
-
-        let packages= s:L.uniq(packages)
-
-        return map(packages, "
-        \   {
-        \      "word":   v:val,
-        \      "kind":   "expandable",
-        \      "source": self.name,
-        \      "action__package": v:val,
-        \   }
-        \")
-    endif
-endfunction
-
-let s:allclasses= {
+let s:classes= {
 \   'name'           : 'javaimport/class',
 \   'description'    : 'candidates from classes in current classpath.',
 \   'sorters'        : ['sorter_word'],
 \   'max_candidates' : 100,
 \}
 
-function! s:allclasses.gather_candidates(args, context)
+function! s:classes.gather_candidates(args, context)
     " handle arguments
     let query= javaimport#build_args(a:args)
     let regex_object= {
@@ -193,7 +88,7 @@ function! s:allclasses.gather_candidates(args, context)
     return []
 endfunction
 
-function! s:allclasses.async_gather_candidates(args, context)
+function! s:classes.async_gather_candidates(args, context)
     let server= javaimport#server()
     let configs= deepcopy(a:context.source__configs)
     let ticket= deepcopy(a:context.source__ticket)
@@ -271,7 +166,7 @@ function! s:static_import.async_gather_candidates(args, context)
 endfunction
 
 function! unite#sources#javaimport#define()
-    return [deepcopy(s:source), deepcopy(s:allclasses)]
+    return [deepcopy(s:classes)]
 endfunction
 
 let &cpo= s:save_cpo

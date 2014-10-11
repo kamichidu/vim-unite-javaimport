@@ -1,8 +1,8 @@
 *unite-javaimport.txt*
 
-Version: 0.20
+Version: 0.30
 Author:  kamichidu <c.kamunagi@gmail.com>
-Last Change: 10-Aug-2014.
+Last Change: 12-Oct-2014.
 License: The MIT License (MIT)
 
 Copyright (c) 2013-2014 kamichidu
@@ -25,220 +25,167 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
-CONTENTS                                           *unite-javaimport-contents*
+CONTENTS					   *unite-javaimport-contents*
 
-Introduction                                   |unite-javaimport-introduction|
-Install                                             |unite-javaimport-install|
-Interface                                         |unite-javaimport-interface|
-How to Use                                         |unite-javaimport-howtouse|
-Acknowledgement                             |unite-javaimport-acknowledgement|
+Introduction				       |unite-javaimport-introduction|
+Install						    |unite-javaimport-install|
+Interface					  |unite-javaimport-interface|
+How to Use					   |unite-javaimport-howtouse|
+Acknowledgement				    |unite-javaimport-acknowledgement|
 
 ==============================================================================
-INTRODUCTION                                   *unite-javaimport-introduction*
+INTRODUCTION				       *unite-javaimport-introduction*
 
-this plugin is an unite source for importing java classes.
+This is an unite-source which is gathering and importing java classes
+dynamically.
 
 TODO
 
 Dependencies ~
 
-    * https://github.com/Shougo/unite.vim            (required)
-    * https://github.com/Shougo/vimproc.vim          (required)
-    * https://github.com/kamichidu/vim-javaclasspath (required)
-    * https://github.com/kamichidu/vim-javalang      (required)
-    * Java Runtime Environment (JRE) 1.7 or above    (required)
-    * Exuberant Ctags                                (required)
-    * https://github.com/yuratomo/w3m.vim            (optional)
-        this will be used to preview javadoc.
+Some other products are required to use |unite-javaimport|.
+
+	* https://github.com/Shougo/unite.vim
+		(Required)
+
+	* https://github.com/Shougo/vimproc.vim
+		(Required)
+
+	* https://github.com/kamichidu/vim-javaclasspath
+		(Required)
+
+	* https://github.com/kamichidu/vim-javalang
+		(Required)
+
+	* Java Runtime Environment (JRE) 1.6 or above
+		(Required)
+
+	* Exuberant Ctags 5.8 or above
+		(Required)
+
+	* https://github.com/yuratomo/w3m.vim
+		(Optional)
+		It is used by |
 
 ==============================================================================
-INSTALL                                             *unite-javaimport-install*
+INTERFACE					  *unite-javaimport-interface*
 
-first you have to install
+------------------------------------------------------------------------------
+UNITE SOURCES				      *unite-javaimport-unite-sources*
 
-    1. Java Runtime Environment 1.7 or above
-    1. Exuberant Ctags 5.8 or above
-
-second you install this plugin. if you use |neobundle|, you can install this
-plugin easily.
->
-    " simple instalation
-    NeoBundle 'KamunagiChiduru/unite-javaimport', {
-    \   'depends': [
-    \       'Shougo/unite.vim',
-    \       'Shougo/vimproc.vim',
-    \       'KamunagiChiduru/vim-javaclasspath',
-    \       'KamunagiChiduru/vim-javalang',
-    \   ],
-    \}
-
-    " fully instalation
-    NeoBundle 'KamunagiChiduru/unite-javaimport', {
-    \   'depends': [
-    \       'Shougo/unite.vim',
-    \       'Shougo/vimproc.vim',
-    \       'KamunagiChiduru/vim-javaclasspath',
-    \       'KamunagiChiduru/vim-javalang',
-    \       'yuratomo/w3m.vim',
-    \   ],
-    \}
-<
-==============================================================================
-INTERFACE                                         *unite-javaimport-interface*
-
-Unite ~
-
-    NOTE: A javaimport source is deprecated. Use javaimport/class source or
-    other new sources instead of, please. A javaimport source will be removed
-    in the future release.
-
-    to show all importable classes by your classpath (by your .javaimport),
-    execute |:Unite| command with "javaimport" as a source parameter.
->
-    :Unite javaimport
-<
-    |unite-javaimport| can accept some arguments.
-
-        ! or show_class
-            show all classes.
-
-        package
-            a package name for filtering to gather classes.
-
-        only
-            a class name for filtering to gather classes.
-            will gather only passed class name with different packages only.
-
-                                                    *unite-javaimport-sources*
-Unite Sources ~
-                                               *unite-javaimport-source-class*
+					       *unite-javaimport-source-class*
 javaimport/class
-    list all importable classes. it will uses |vim-javaclasspath| to detect
-    your classpath.
+	Gather all importable classes, and insert import statements by
+	candidates you selected. It's okay to select multiple candidates.
 >
-    :Unite javaimport/class
+	:Unite javaimport/class
 <
-Command ~
+------------------------------------------------------------------------------
+COMMANDS					   *unite-javaimport-commands*
 
-    :JavaImportClearCache                              *:JavaImportClearCache*
-        clear all cache.
+						       *:JavaImportClearCache*
+:JavaImportClearCache
+	Clear all cache.
 
-    :JavaImportSortStatements                      *:JavaImportSortStatements*
-        sort import statements on current buffer.
+						   *:JavaImportSortStatements*
+:JavaImportSortStatements
+	Sort import statements on current buffer.
 
-    :JavaImportRemoveUnnecessaries            *:JavaImportRemoveUnnecessaries*
-        remove unnecessary import statements from current buffer.
+					      *:JavaImportRemoveUnnecessaries*
+:JavaImportRemoveUnnecessaries            
+	Detect unnecessary import statements, and remove them from current
+	buffer.
 
-Mapping~
+------------------------------------------------------------------------------
+MAPPINGS					   *unite-javaimport-mappings*
 
-    <Plug>(javaimport-quickimport)            *<Plug>(javaimport-quickimport)*
-        invoke |unite-javaimport| with "only" argument.
-        (default key map: <Leader>I)
+					      *<Plug>(javaimport-quickimport)*
+<Plug>(javaimport-quickimport)
+	Invoke |unite-javaimport-source-class| with "only" argument.
+	(Default key map: <Leader>I)
 
-Variable~
+------------------------------------------------------------------------------
+VARIABLES					  *unite-javaimport-variables*
 
-    g:javaimport_use_default_mapping        *g:javaimport_use_default_mapping*
-        this variable type is a |Number|. if 1 has set |unite-javaimport| will
-        set some mappings.
+					    *g:javaimport_use_default_mapping*
+g:javaimport_use_default_mapping
+	Determine to use default key mappings. It is a |Number| one of 1 or 0.
+	(Default: 1)
 
-    g:javaimport_config                                  *g:javaimport_config*
-        this variable type is a |Dictionary|. valid keys and effects are
-        written below.
+							 *g:javaimport_config*
+g:javaimport_config
+	It is a |Dictionary| to control |unite-javaimport| behaviour. It can
+	have attributes below:
 
-        cache_dir
-            associated value type is a |String| and describes a directory will
-            be cached some datas.
+	cache_dir	(Optional, |String|)
+		Directory name for caching.
 
-        preview_using
-            associated value type is a |String| and must be a one of {w3m,
-            lynx}. must be installed |w3m.vim| only if "w3m" was set, or
-            "lynx" was set you got an error (since this feature is
-            unimplemented yet).
-
-        server
-            it's |Dictionary| value. keys are:
-
-            vm
-                it's |String| value. this is used to launch the
-                javaimport-server application.
-                (default on *nix:    $JAVA_HOME/bin/java)
-                (default on windows: $JAVA_HOME/bin/javaw)
-            host
-                it's |String| value. it's a host name which javaimport-server
-                is running or will be run.
-                (default: localhost)
-            port
-                it's |Number| value. it's a port number which
-                javaimport-server listening to or will be listen.
-                (default: 51234)
-            lockfile
-                it's |String| value. it's a lockfile for javaimport-server.
-                (default: g:javaimport_config.cache_dir . '/server.lock')
+	preview_using	(Optional, |String|)
+		One of "w3m" and "lynx". When "w3m" is set, |w3m.vim| must be
+		installed. When "lynx" is set, it doesn't work (not
+		implemented yet).
 
 ==============================================================================
-HOW TO USE                                         *unite-javaimport-howtouse*
+HOW TO USE					   *unite-javaimport-howtouse*
 
-configure classpath using |vim-javaclasspath|.
-or you can write .javaimport to your current directory (project root
-dictionary).
+You can configure |vim-javaclasspath| for detecting your classpath. Or you can
+write `.javaimport' configuration file in your project root directory.
 
-NOTE: configuring using .javaimport is deprecated. It will drops .javaimport
-file format support in future release. Use |vim-javaclasspath| instead of
-.javaimport, please.
+NOTE: Now `.javaimport' configuration file is deprecated. The `.javaimport'
+file will be deleted in future release. Use |vim-javaclasspath|.
 
-an example for .javaimport below.
+Let show an example of `.javaimport' file, it is similar to JSON format.
 >
-    # line comment
-    {
-        'path':    'path to classpath',
-    },
-    {
-        'path':    'path to classpath',
-        'javadoc': 'javadoc uri for classpath',
-    },
+	# line comment
+	{
+		'path': 'path/to/jar_or_classes_directory',
+	},
+	{
+		'path': 'path/to/jar_or_classes_directory',
+		'javadoc': 'url/of/javadoc',
+	},
 <
-this is like a JSON. for each dictionary must have "path" and may have
-"javadoc". details below.
 
-    "path" (required)
-        possible values are
-            - src directory path
-            - jar file path
-            - zip file path
-            - javadoc url
-        a value accepts absolute and relative path.
+Each |Dictionary| (called Object in JSON) must have "path" attribute. And can
+have "javadoc" attribute.
 
-    "javadoc" (optional)
-        javadoc url
+	"path"		(Required)
+		One of follows:
+		- source directory path
+		- jar or zip file path contains class file
+		- url of javadoc
+		Relative path and absolute path are okay.
+
+	"javadoc"	(Optional)
+		Javadoc url for related path.
 
 ==============================================================================
 ACKNOWLEDGEMENT                             *unite-javaimport-acknowledgement*
 
-|unite-javaimport| use some libraries below.
+|unite-javaimport| uses some java libraries.
 
-    * Guava (http://code.google.com/p/guava-libraries/)
+	* Guava (http://code.google.com/p/guava-libraries/)
+		Apache License 2.0
+		(http://www.apache.org/licenses/LICENSE-2.0)
 
-        Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+	* args4j (http://args4j.kohsuke.org/)
+		MIT License
+		(http://opensource.org/licenses/mit-license.php)
 
-    * BCEL (http://commons.apache.org/proper/commons-bcel/)
+	* Lombok (http://projectlombok.org/)
+		MIT License
+		(http://opensource.org/licenses/mit-license.php)
 
-        Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+	* Jackson (http://jackson.codehaus.org/)
+		Apache License 2.0
+		(http://www.apache.org/licenses/LICENSE-2.0)
 
-    * args4j (http://args4j.kohsuke.org/)
+	* SLF4J (http://www.slf4j.org/)
+		MIT License
+		(http://opensource.org/licenses/mit-license.php)
 
-        MIT License (http://opensource.org/licenses/mit-license.php)
-
-    * Apache MINA (https://mina.apache.org/)
-
-        Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
-
-    * JSONIC (http://jsonic.sourceforge.jp/)
-
-        Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
-
-    * Lombok (http://projectlombok.org/)
-
-        MIT License (http://opensource.org/licenses/mit-license.php)
+	* ASM (http://asm.ow2.org/)
+		(http://asm.ow2.org/license.html)
 
 ==============================================================================
-vim:tw=78:ts=4:ft=help:norl:fen:
+vim:tw=78:ts=8:ft=help:norl:fen:
