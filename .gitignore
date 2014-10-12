@@ -3,3 +3,4 @@ javaimport/target/
 .vim-flavor/
 .vim-test/
 *.lock
+logs/
