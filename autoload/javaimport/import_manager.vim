@@ -22,7 +22,7 @@
 let s:save_cpo= &cpo
 set cpo&vim
 
-let s:L= javaimport#Data_List()
+let s:L= javaimport#vital('Data.List')
 
 let s:prototype= {}
 

@@ -1,119 +1,74 @@
-" ----------------------------------------------------------------------------
-" File:        autoload/javaimport.vim
-" Last Change: 06-Aug-2014.
-" Maintainer:  kamichidu <c.kamunagi@gmail.com>
-" License:     The MIT License (MIT)
-" 
-"              Copyright (c) 2013 kamichidu
+" The MIT License (MIT)
 "
-"              Permission is hereby granted, free of charge, to any person
-"              obtaining a copy of this software and associated documentation
-"              files (the "Software"), to deal in the Software without
-"              restriction, including without limitation the rights to use,
-"              copy, modify, merge, publish, distribute, sublicense, and/or
-"              sell copies of the Software, and to permit persons to whom the
-"              Software is furnished to do so, subject to the following
-"              conditions:
+" Copyright (c) 2014 kamichidu
 "
-"              The above copyright notice and this permission notice shall be
-"              included in all copies or substantial portions of the Software.
+" Permission is hereby granted, free of charge, to any person obtaining a copy
+" of this software and associated documentation files (the "Software"), to deal
+" in the Software without restriction, including without limitation the rights
+" to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+" copies of the Software, and to permit persons to whom the Software is
+" furnished to do so, subject to the following conditions:
 "
-"              THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-"              EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-"              OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-"              NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-"              HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-"              WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-"              FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-"              OTHER DEALINGS IN THE SOFTWARE.
-" ----------------------------------------------------------------------------
+" The above copyright notice and this permission notice shall be included in
+" all copies or substantial portions of the Software.
+"
+" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+" IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+" FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+" AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+" LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+" OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+" THE SOFTWARE.
 let s:save_cpo= &cpo
 set cpo&vim
 
 let s:V= vital#of('javaimport')
 let s:P= s:V.import('Process')
-let s:FILE= s:V.import('System.File')
-let s:CACHE= s:V.import('System.Cache')
-let s:JSON= s:V.import('Web.JSON')
-let s:HTTP= s:V.import('Web.HTTP')
 let s:L= s:V.import('Data.List')
-let s:BM= s:V.import('Vim.BufferManager')
+let s:J= s:V.import('Web.JSON')
 let s:M= s:V.import('Vim.Message')
 unlet s:V
 
-function! javaimport#Process()
-    return s:P
-endfunction
-
-function! javaimport#System_File()
-    return s:FILE
-endfunction
-
-function! javaimport#System_Cache()
-    return s:CACHE
-endfunction
-
-function! javaimport#Web_JSON()
-    return s:JSON
-endfunction
-
-function! javaimport#Web_HTTP()
-    return s:HTTP
-endfunction
-
-function! javaimport#Data_List()
-    return s:L
-endfunction
-
-function! javaimport#Vim_BufferManager()
-    return s:BM
-endfunction
-
-function! javaimport#Vim_Message()
-    return s:M
-endfunction
-
 let s:jclasspath= javaclasspath#get()
 
-"""
-" importの設定を返す
-"
-" @return
-"   次の形式に則ったDictionaryのList
-"   [
-"       {
-"           'path': 'path/to/item', 
-"           'type': {'jar'|'directory'|'javadoc'}, 
-"           'javadoc': 'path/to/javadoc', 
-"       }, 
-"   ]
-""
+let s:vital= {
+\   'Process': s:P,
+\   'Data.List': s:L,
+\   'Web.JSON': s:J,
+\   'Vim.Message': s:M,
+\}
+function! javaimport#vital(module)
+    return s:vital[a:module]
+endfunction
+
+" Deprecated: removed later
 function! javaimport#import_config()
-    let l:result= s:parse_javaimport()
-    let l:jclasspath_parsed= s:jclasspath.parse()
+    let result= s:parse_javaimport()
+    let jclasspath_parsed= s:jclasspath.parse()
 
     " convert own format
-    for l:entry in l:jclasspath_parsed
-        let l:converted= {}
+    for entry in jclasspath_parsed
+        let converted= {}
 
-        if l:entry.kind ==# 'lib'
-            let l:converted.type= 'jar'
-            let l:converted.path= l:entry.path
-            let l:converted.javadoc= get(l:entry, 'javadoc', '')
-        elseif l:entry.kind ==# 'src'
-            let l:converted.type= 'directory'
-            let l:converted.path= l:entry.path
-            let l:converted.javadoc= get(l:entry, 'javadoc', '')
+        if entry.kind ==# 'lib'
+            let converted.type= 'jar'
+            let converted.path= entry.path
+            let converted.javadoc= get(entry, 'javadoc', '')
+        elseif entry.kind ==# 'src'
+            let converted.type= 'directory'
+            let converted.path= entry.path
+            let converted.javadoc= get(entry, 'javadoc', '')
         endif
 
-        if has_key(l:converted, 'path')
-            call add(l:result, l:converted)
+        if has_key(converted, 'path')
+            call add(result, converted)
         endif
     endfor
 
-    return l:result
+    return result
 endfunction
 
+" Deprecated: removed later
 function! s:parse_javaimport()
     if !filereadable('.javaimport')
         return []
@@ -174,34 +129,6 @@ function! javaimport#to_javadoc_url(base_url, canonical_name)
     endfor
 
     return l:result.'html'
-endfunction
-
-"""
-" 2つのListの各要素について、exprを評価した結果を新しいListに格納して返す
-"
-" @param expr 式中に含まれるv:aはlhsの各要素に、v:bはrhsに各要素にそれぞれ置き換えらて評価される。
-" @param lhs List
-" @param rhs List
-" @return
-"   lhsとrhsの各要素について、exprの評価結果を格納したList
-" @throw lhsもしくはrhsがListでなかった場合、lhsとrhsの要素数が一致しない場合
-""
-" Deprecated: find a way
-function! javaimport#each(expr, lhs, rhs)
-    if !(type(a:lhs) == type(a:rhs) && type(a:lhs) == type([]) && len(a:lhs) == len(a:rhs))
-        throw 'illegal argument'
-    endif
-
-    let l:indices= range(0, len(a:lhs) - 1)
-    let l:result= []
-    for l:index in l:indices
-        let l:expr= a:expr
-        let l:expr= substitute(l:expr, '\<v:a\>', string(a:lhs[l:index]), 'g')
-        let l:expr= substitute(l:expr, '\<v:b\>', string(a:rhs[l:index]), 'g')
-
-        call add(l:result, eval(l:expr))
-    endfor
-    return l:result
 endfunction
 
 """
