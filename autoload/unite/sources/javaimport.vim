@@ -204,20 +204,18 @@ function! s:classes.gather_candidates(args, context)
     let package_filter= s:new_package_filter(a:context)
     let a:context.source__paths= []
     let a:context.source__package_filter= package_filter
-    let a:context.source__packages= []
+    let packages= []
     for path in s:L.zip(orig_paths, data_paths)
-        let [ok, packages]= s:read_packages(path[1])
+        let [ok, names]= s:read_packages(path[1])
 
         if ok
-            let a:context.source__packages+= map(copy(package_filter.apply(packages)), '[path, v:val]')
+            let packages+= map(copy(package_filter.apply(names)), '[path, v:val]')
         else
             let a:context.source__paths+= [path]
         endif
     endfor
 
     let candidates= []
-    let packages_read= []
-    let packages= a:context.source__packages
     let class_filter= s:new_class_filter(a:context)
     let a:context.source__packages= []
     let a:context.source__class_filter= class_filter
@@ -238,24 +236,23 @@ function! s:classes.gather_candidates(args, context)
 endfunction
 
 function! s:classes.async_gather_candidates(args, context)
-    let paths= a:context.source__paths
     let package_filter= a:context.source__package_filter
+    let paths= a:context.source__paths
     let a:context.source__paths= []
-    let a:context.source__packages= []
+    let packages= []
     for path in paths
-        let [ok, packages]= s:read_packages(path[1])
+        let [ok, names]= s:read_packages(path[1])
 
         if ok
-            let a:context.source__packages+= map(copy(package_filter.apply(packages)), '[path, v:val]')
+            let packages+= map(copy(package_filter.apply(names)), '[path, v:val]')
         else
             let a:context.source__paths+= [path]
         endif
     endfor
 
     let candidates= []
-    let packages_read= []
-    let packages= a:context.source__packages
     let class_filter= s:new_class_filter(a:context)
+    let packages+= a:context.source__packages
     let a:context.source__packages= []
     for package in packages
         let [path, name]= package
