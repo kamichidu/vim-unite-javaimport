@@ -34,7 +34,7 @@ if !exists('g:javaimport_use_default_mapping')
 endif
 
 let g:javaimport_config= get(g:, 'javaimport_config', {})
-let g:javaimport_config.cache_dir= get(g:javaimport_config, 'cache_dir', $TEMP . '/javaimport/')
+let g:javaimport_config.cache_dir= get(g:javaimport_config, 'cache_dir', expand('~/.javaimport/'))
 let g:javaimport_config.preview_using= get(g:javaimport_config, 'preview_using', 'w3m')
 let g:javaimport_config.debug_mode= get(g:javaimport_config, 'debug_mode', 0)
 let g:javaimport_config.exclude_packages= get(g:javaimport_config, 'exclude_packages', [
