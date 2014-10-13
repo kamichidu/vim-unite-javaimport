@@ -25,10 +25,10 @@ set cpo&vim
 let s:filter= javaimport#filter#package#new()
 
 function! s:filter.classname(name)
-    let regex= {'name': escape(a:name, '.\')}
+    let regex= {'name': a:name}
 
     function! regex.apply(value)
-        return a:value =~# '\C\<' . self.name . '$'
+        return a:value.simple_name ==# self.name
     endfunction
 
     let self.__regexes+= [regex]

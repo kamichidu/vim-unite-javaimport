@@ -64,9 +64,9 @@ function! s:suite.__class_filter__()
 
         call filter.classname('Boolean')
 
-        let unfiltered= ['java.util.HashMap', 'java.utility.Boolean', 'java.util.concurrent.ConcurrentSkipListMap']
+        let unfiltered= [{'simple_name': 'HashMap'}, {'simple_name': 'Boolean'}, {'simple_name': 'ConcurrentSkipListMap'}]
         let filtered= filter.apply(unfiltered)
-        call s:assert.equals(unfiltered, ['java.util.HashMap', 'java.utility.Boolean', 'java.util.concurrent.ConcurrentSkipListMap'])
-        call s:assert.equals(filtered, ['java.utility.Boolean'])
+        call s:assert.equals(unfiltered, [{'simple_name': 'HashMap'}, {'simple_name': 'Boolean'}, {'simple_name': 'ConcurrentSkipListMap'}])
+        call s:assert.equals(filtered, [{'simple_name': 'Boolean'}])
     endfunction
 endfunction
