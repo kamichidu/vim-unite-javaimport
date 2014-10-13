@@ -93,8 +93,8 @@ endfunction
 function! s:new_package_filter(context)
     let filter= javaimport#filter#package#new()
 
-    if has_key(a:context, 'custom_package')
-        call filter.contains(a:context.custom_package)
+    if has_key(a:context, 'custom_javaimport_package')
+        call filter.contains(a:context.custom_javaimport_package)
     endif
     for exclusion in get(g:javaimport_config, 'exclude_packages', [])
         call filter.exclude(exclusion)
@@ -106,8 +106,8 @@ endfunction
 function! s:new_class_filter(context)
     let filter= javaimport#filter#class#new()
 
-    if has_key(a:context, 'custom_class')
-        call filter.classname(a:context.custom_class)
+    if has_key(a:context, 'custom_javaimport_class')
+        call filter.classname(a:context.custom_javaimport_class)
     endif
 
     return filter
@@ -177,10 +177,10 @@ let s:classes= {
 \   'max_candidates': 100,
 \}
 
-" all arguments are passed by context using -custom_xxx argument
+" all arguments are passed by context using -custom-javaimport-xxx argument
 " valid arguments are:
-"   custom_package - package name (constant match)
-"   custom_class   - class name (constant match)
+"   custom_javaimport_package - package name (constant match)
+"   custom_javaimport_class   - class name (constant match)
 function! s:classes.gather_candidates(args, context)
     let data_dir= s:join_path(g:javaimport_config.cache_dir, 'data/')
     let configs= javaimport#import_config()

@@ -38,7 +38,7 @@ let s:package.action_table.expand= {
 \   'is_start': 1,
 \}
 function! s:package.action_table.expand.func(candidate)
-    call unite#start_script([['javaimport/class']], {'custom_package': a:candidate.action__package})
+    call unite#start_script([['javaimport/class']], {'custom_javaimport_package': a:candidate.action__package})
 endfunction
 
 "

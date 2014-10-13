@@ -76,10 +76,10 @@ UNITE SOURCES				      *unite-javaimport-unite-sources*
 					     *unite-javaimport-source-package*
 javaimport/package
 	Gather all packages, and invoke |unite-javaimport-source-class| with
-	"-custom-package" attribute you selected. This source can takes
-	arguments below:
+	"-custom-javaimport-package" attribute you selected. This source can
+	takes arguments below:
 
-	-custom-package={package}
+	-custom-javaimport-package={package}
 >
 	:Unite javaimport/package
 <
@@ -90,8 +90,8 @@ javaimport/class
 	candidates you selected. It's okay to select multiple candidates. This
 	source can takes arguments below:
 
-	-custom-package={package}
-	-custom-class={class}
+	-custom-javaimport-package={package}
+	-custom-javaimport-class={class}
 >
 	:Unite javaimport/class
 <
@@ -116,7 +116,8 @@ MAPPINGS					   *unite-javaimport-mappings*
 
 					      *<Plug>(javaimport-quickimport)*
 <Plug>(javaimport-quickimport)
-	Invoke |unite-javaimport-source-class| with "-custom-class" argument.
+	Invoke |unite-javaimport-source-class| with "-custom-javaimport-class"
+	argument.
 	(Default key map: <Leader>I)
 
 ------------------------------------------------------------------------------
