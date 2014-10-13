@@ -34,84 +34,15 @@ let s:config_classpath= s:plugin_dir . 'config/'
 
 let s:jlang= javalang#get()
 
+"
+" package source
+"
 let s:packages= {
 \   'name': 'javaimport/package',
 \   'description': 'Gather packages from current classpath.',
 \   'sorters': ['sorter_word'],
 \   'max_candidates': 100,
 \}
-
-function! s:analyze_fast(data_dir, paths)
-    " filter jarfle if already exist
-    let [orig_paths, data_paths]= s:trans_data_path(a:data_dir, a:paths)
-
-    let jars= []
-    for path in s:L.zip(orig_paths, data_paths)
-        if !isdirectory(path[1])
-            let jars+= [path[0]]
-        endif
-    endfor
-
-    call s:analyze(a:data_dir, jars)
-endfunction
-
-function! s:analyze(data_dir, paths)
-    if empty(a:paths)
-        " do nothing
-        return
-    endif
-
-    call s:P.spawn(join([
-    \   expand('$JAVA_HOME/bin/java'),
-    \   '-cp', join([s:config_classpath, s:javaimport_classpath], s:jlang.constants.path_separator),
-    \   'jp.michikusa.chitose.javaimport.cli.App',
-    \   '--outputdir', a:data_dir,
-    \   join(a:paths),
-    \]))
-endfunction
-
-" => [[], []]
-function! s:trans_data_path(data_dir, paths)
-    let orig_paths= []
-    let data_paths= []
-
-    for path in a:paths
-        if isdirectory(path)
-            " it's a directory
-            let orig_paths+= [path]
-            let data_paths+= [s:join_path(a:data_dir, s:escape(path))]
-        elseif filereadable(path) && path =~# '\c\.\%(jar\|zip\)$'
-            " it's a jar file or zip file
-            let orig_paths+= [path]
-            let data_paths+= [s:join_path(a:data_dir, fnamemodify(path, ':t'))]
-        endif
-    endfor
-
-    return [orig_paths, data_paths]
-endfunction
-
-function! s:new_package_filter(context)
-    let filter= javaimport#filter#package#new()
-
-    if has_key(a:context, 'custom_javaimport_package')
-        call filter.contains(a:context.custom_javaimport_package)
-    endif
-    for exclusion in get(g:javaimport_config, 'exclude_packages', [])
-        call filter.exclude(exclusion)
-    endfor
-
-    return filter
-endfunction
-
-function! s:new_class_filter(context)
-    let filter= javaimport#filter#class#new()
-
-    if has_key(a:context, 'custom_javaimport_class')
-        call filter.classname(a:context.custom_javaimport_class)
-    endif
-
-    return filter
-endfunction
 
 function! s:packages.gather_candidates(args, context)
     let data_dir= s:join_path(g:javaimport_config.cache_dir, 'data/')
@@ -162,14 +93,9 @@ function! s:packages.async_gather_candidates(args, context)
     return candidates
 endfunction
 
-function! s:trans_package_candidate(packages)
-    return map(copy(a:packages), "{
-    \   'word': v:val,
-    \   'kind': 'javaimport/package',
-    \   'action__package': v:val,
-    \}")
-endfunction
-
+"
+" class source
+"
 let s:classes= {
 \   'name': 'javaimport/class',
 \   'description': 'Gather classes from current classpath.',
@@ -270,14 +196,9 @@ function! s:classes.async_gather_candidates(args, context)
     return candidates
 endfunction
 
-function! s:trans_class_candidate(classes)
-    return map(copy(a:classes), "{
-    \   'word': v:val.canonical_name,
-    \   'kind': 'javaimport/class',
-    \   'action__canonical_name': v:val.canonical_name,
-    \}")
-endfunction
-
+"
+" field/method source
+"
 let s:static_import= {
 \   'name': 'javaimport/static_import',
 \}
@@ -328,6 +249,78 @@ function! s:static_import.async_gather_candidates(args, context)
     return []
 endfunction
 
+function! s:analyze_fast(data_dir, paths)
+    " filter jarfle if already exist
+    let [orig_paths, data_paths]= s:trans_data_path(a:data_dir, a:paths)
+
+    let jars= []
+    for path in s:L.zip(orig_paths, data_paths)
+        if !isdirectory(path[1])
+            let jars+= [path[0]]
+        endif
+    endfor
+
+    call s:analyze(a:data_dir, jars)
+endfunction
+
+function! s:analyze(data_dir, paths)
+    if empty(a:paths)
+        " do nothing
+        return
+    endif
+
+    call s:P.spawn(join([
+    \   expand('$JAVA_HOME/bin/java'),
+    \   '-cp', join([s:config_classpath, s:javaimport_classpath], s:jlang.constants.path_separator),
+    \   'jp.michikusa.chitose.javaimport.cli.App',
+    \   '--outputdir', a:data_dir,
+    \   join(a:paths),
+    \]))
+endfunction
+
+" => [[], []]
+function! s:trans_data_path(data_dir, paths)
+    let orig_paths= []
+    let data_paths= []
+
+    for path in a:paths
+        if isdirectory(path)
+            " it's a directory
+            let orig_paths+= [path]
+            let data_paths+= [s:join_path(a:data_dir, s:escape(path))]
+        elseif filereadable(path) && path =~# '\c\.\%(jar\|zip\)$'
+            " it's a jar file or zip file
+            let orig_paths+= [path]
+            let data_paths+= [s:join_path(a:data_dir, fnamemodify(path, ':t'))]
+        endif
+    endfor
+
+    return [orig_paths, data_paths]
+endfunction
+
+function! s:new_package_filter(context)
+    let filter= javaimport#filter#package#new()
+
+    if has_key(a:context, 'custom_javaimport_package')
+        call filter.contains(a:context.custom_javaimport_package)
+    endif
+    for exclusion in get(g:javaimport_config, 'exclude_packages', [])
+        call filter.exclude(exclusion)
+    endfor
+
+    return filter
+endfunction
+
+function! s:new_class_filter(context)
+    let filter= javaimport#filter#class#new()
+
+    if has_key(a:context, 'custom_javaimport_class')
+        call filter.classname(a:context.custom_javaimport_class)
+    endif
+
+    return filter
+endfunction
+
 function! s:escape(name)
     return substitute(a:name, '[:;*?"<>|/\\%]', '_', 'g')
 endfunction
@@ -354,6 +347,22 @@ function! s:read_classes(data_path, package)
     else
         return [0, []]
     endif
+endfunction
+
+function! s:trans_package_candidate(packages)
+    return map(copy(a:packages), "{
+    \   'word': v:val,
+    \   'kind': 'javaimport/package',
+    \   'action__package': v:val,
+    \}")
+endfunction
+
+function! s:trans_class_candidate(classes)
+    return map(copy(a:classes), "{
+    \   'word': v:val.canonical_name,
+    \   'kind': 'javaimport/class',
+    \   'action__canonical_name': v:val.canonical_name,
+    \}")
 endfunction
 
 function! unite#sources#javaimport#define()
