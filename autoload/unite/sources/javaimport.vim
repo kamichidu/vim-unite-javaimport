@@ -135,11 +135,7 @@ function! s:packages.gather_candidates(args, context)
         let [ok, packages]= s:read_packages(path[1])
 
         if ok
-            let candidates+= map(filter.apply(packages), "{
-            \   'word': v:val,
-            \   'kind': 'javaimport/package',
-            \   'action__package': v:val,
-            \}")
+            let candidates+= s:trans_package_candidate(filter.apply(packages))
         else
             let a:context.source__paths+= [path]
         endif
@@ -157,17 +153,21 @@ function! s:packages.async_gather_candidates(args, context)
         let [ok, packages]= s:read_packages(path[1])
 
         if ok
-            let candidates+= map(filter.apply(packages), "{
-            \   'word': v:val,
-            \   'kind': 'javaimport/package',
-            \   'action__package': v:val,
-            \}")
+            let candidates+= s:trans_package_candidate(filter.apply(packages))
         else
             let a:context.source__paths+= [path]
         endif
     endfor
     let a:context.is_async= !empty(a:context.source__paths)
     return candidates
+endfunction
+
+function! s:trans_package_candidate(packages)
+    return map(copy(a:packages), "{
+    \   'word': v:val,
+    \   'kind': 'javaimport/package',
+    \   'action__package': v:val,
+    \}")
 endfunction
 
 let s:classes= {
@@ -201,78 +201,84 @@ function! s:classes.gather_candidates(args, context)
         return []
     endif
 
-    let candidates= []
     let package_filter= s:new_package_filter(a:context)
-    let class_filter= s:new_class_filter(a:context)
     let a:context.source__paths= []
     let a:context.source__package_filter= package_filter
-    let a:context.source__class_filter= class_filter
+    let a:context.source__packages= []
     for path in s:L.zip(orig_paths, data_paths)
-        if isdirectory(path[1])
-            let files= map(split(globpath(path[1], '*'), "\n"), 'fnamemodify(v:val, ":t")')
+        let [ok, packages]= s:read_packages(path[1])
 
-            call filter(files, 'v:val !=# "packages"')
-
-            for file in package_filter.apply(files)
-                try
-                    let classes= s:J.decode(join(readfile(s:join_path(path[1], file)), ''))
-
-                    call filter(classes, 's:L.has(v:val.modifiers, "public") || s:L.has(v:val.modifiers, "protected")')
-
-                    let candidates+= map(class_filter.apply(classes), "{
-                    \   'word': v:val.canonical_name,
-                    \   'kind': 'javaimport/class',
-                    \   'action__canonical_name': v:val.canonical_name,
-                    \}")
-                catch
-                    echomsg file
-                    echomsg v:throwpoint
-                    echomsg v:exception
-                endtry
-            endfor
+        if ok
+            let a:context.source__packages+= map(copy(package_filter.apply(packages)), '[path, v:val]')
         else
             let a:context.source__paths+= [path]
         endif
     endfor
-    let a:context.is_async= !empty(a:context.source__paths)
+
+    let candidates= []
+    let packages_read= []
+    let packages= a:context.source__packages
+    let class_filter= s:new_class_filter(a:context)
+    let a:context.source__packages= []
+    let a:context.source__class_filter= class_filter
+    for package in packages
+        let [path, name]= package
+        let [ok, classes]= s:read_classes(path[1], name)
+
+        if ok
+            call filter(classes, 's:L.has(v:val.modifiers, "public") || s:L.has(v:val.modifiers, "protected")')
+
+            let candidates+= s:trans_class_candidate(class_filter.apply(classes))
+        else
+            let a:context.source__packages+= [package]
+        endif
+    endfor
+    let a:context.is_async= !empty(a:context.source__paths) || !empty(a:context.source__packages)
     return candidates
 endfunction
 
 function! s:classes.async_gather_candidates(args, context)
-    let candidates= []
     let paths= a:context.source__paths
     let package_filter= a:context.source__package_filter
-    let class_filter= a:context.source__class_filter
     let a:context.source__paths= []
+    let a:context.source__packages= []
     for path in paths
-        if isdirectory(path[1])
-            let files= map(split(globpath(path[1], '*'), "\n"), 'fnamemodify(v:val, ":t")')
+        let [ok, packages]= s:read_packages(path[1])
 
-            call filter(files, 'v:val !=# "packages"')
-
-            for file in package_filter.apply(files)
-                try
-                    let classes= s:J.decode(join(readfile(s:join_path(path[1], file)), ''))
-
-                    call filter(classes, 's:L.has(v:val.modifiers, "public") || s:L.has(v:val.modifiers, "protected")')
-
-                    let candidates+= map(filter.apply(classes), "{
-                    \   'word': v:val.canonical_name,
-                    \   'kind': 'javaimport/class',
-                    \   'action__canonical_name': v:val.canonical_name,
-                    \}")
-                catch
-                    echomsg file
-                    echomsg v:throwpoint
-                    echomsg v:exception
-                endtry
-            endfor
+        if ok
+            let a:context.source__packages+= map(copy(package_filter.apply(packages)), '[path, v:val]')
         else
             let a:context.source__paths+= [path]
         endif
     endfor
-    let a:context.is_async= !empty(a:context.source__paths)
+
+    let candidates= []
+    let packages_read= []
+    let packages= a:context.source__packages
+    let class_filter= s:new_class_filter(a:context)
+    let a:context.source__packages= []
+    for package in packages
+        let [path, name]= package
+        let [ok, classes]= s:read_classes(path[1], name)
+
+        if ok
+            call filter(classes, 's:L.has(v:val.modifiers, "public") || s:L.has(v:val.modifiers, "protected")')
+
+            let candidates+= s:trans_class_candidate(class_filter.apply(classes))
+        else
+            let a:context.source__packages+= [package]
+        endif
+    endfor
+    let a:context.is_async= !empty(a:context.source__paths) || !empty(a:context.source__packages)
     return candidates
+endfunction
+
+function! s:trans_class_candidate(classes)
+    return map(copy(a:classes), "{
+    \   'word': v:val.canonical_name,
+    \   'kind': 'javaimport/class',
+    \   'action__canonical_name': v:val.canonical_name,
+    \}")
 endfunction
 
 let s:static_import= {
