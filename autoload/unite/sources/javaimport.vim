@@ -132,9 +132,9 @@ function! s:packages.gather_candidates(args, context)
     let a:context.source__paths= []
     let a:context.source__filter= filter
     for path in s:L.zip(orig_paths, data_paths)
-        if filereadable(path[1] . '/packages')
-            let packages= s:J.decode(join(readfile(path[1] . '/packages'), ''))
+        let [ok, packages]= s:read_packages(path[1])
 
+        if ok
             let candidates+= map(filter.apply(packages), "{
             \   'word': v:val,
             \   'kind': 'javaimport/package',
@@ -154,12 +154,10 @@ function! s:packages.async_gather_candidates(args, context)
     let filter= a:context.source__filter
     let a:context.source__paths= []
     for path in paths
-        if filereadable(path[1] . '/packages')
-            let packages= s:J.decode(join(readfile(data_dir . jarname . '/packages'), ''))
+        let [ok, packages]= s:read_packages(path[1])
 
-            let packages= filter.apply(packages)
-
-            let candidates+= map(packages, "{
+        if ok
+            let candidates+= map(filter.apply(packages), "{
             \   'word': v:val,
             \   'kind': 'javaimport/package',
             \   'action__package': v:val,
@@ -333,6 +331,26 @@ endfunction
 
 function! s:join_path(parent, filename)
     return substitute(a:parent, '/\+$', '', '') . '/' . a:filename
+endfunction
+
+" [1/0, []]
+function! s:read_packages(data_path)
+    if filereadable(s:join_path(a:data_path, 'packages'))
+        let content= readfile(s:join_path(a:data_path, 'packages'))
+        return [1, s:J.decode(join(content, ''))]
+    else
+        return [0, []]
+    endif
+endfunction
+
+" [1/0, []]
+function! s:read_classes(data_path, package)
+    if filereadable(s:join_path(a:data_path, a:package))
+        let content= readfile(s:join_path(a:data_path, a:package))
+        return [1, s:J.decode(join(content, ''))]
+    else
+        return [0, []]
+    endif
 endfunction
 
 function! unite#sources#javaimport#define()
