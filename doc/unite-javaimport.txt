@@ -2,7 +2,7 @@
 
 Version: 0.30
 Author:  kamichidu <c.kamunagi@gmail.com>
-Last Change: 12-Oct-2014.
+Last Change: 13-Oct-2014.
 License: The MIT License (MIT)
 
 Copyright (c) 2013-2014 kamichidu
@@ -73,10 +73,25 @@ INTERFACE					  *unite-javaimport-interface*
 ------------------------------------------------------------------------------
 UNITE SOURCES				      *unite-javaimport-unite-sources*
 
+					     *unite-javaimport-source-package*
+javaimport/package
+	Gather all packages, and invoke |unite-javaimport-source-class| with
+	"-custom-package" attribute you selected. This source can takes
+	arguments below:
+
+	-custom-package={package}
+>
+	:Unite javaimport/package
+<
+
 					       *unite-javaimport-source-class*
 javaimport/class
 	Gather all importable classes, and insert import statements by
-	candidates you selected. It's okay to select multiple candidates.
+	candidates you selected. It's okay to select multiple candidates. This
+	source can takes arguments below:
+
+	-custom-package={package}
+	-custom-class={class}
 >
 	:Unite javaimport/class
 <
@@ -101,7 +116,7 @@ MAPPINGS					   *unite-javaimport-mappings*
 
 					      *<Plug>(javaimport-quickimport)*
 <Plug>(javaimport-quickimport)
-	Invoke |unite-javaimport-source-class| with "only" argument.
+	Invoke |unite-javaimport-source-class| with "-custom-class" argument.
 	(Default key map: <Leader>I)
 
 ------------------------------------------------------------------------------
@@ -118,9 +133,11 @@ g:javaimport_config
 	have attributes below:
 
 	cache_dir	(Optional, |String|)
-		Directory name for caching.
+			(Default: '$HOME/.javaimport/')
+		Relative or absolute path for caching.
 
 	preview_using	(Optional, |String|)
+			(Default: 'w3m')
 		One of "w3m" and "lynx". When "w3m" is set, |w3m.vim| must be
 		installed. When "lynx" is set, it doesn't work (not
 		implemented yet).
