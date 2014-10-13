@@ -184,7 +184,7 @@ endfunction
 " @param simple_name simple classname (aka. class name without package name)
 ""
 function! javaimport#quickimport(simple_name)
-    call unite#start([['javaimport/class', 'only=' . a:simple_name]])
+    call unite#start([['javaimport/class']], {'custom_class': a:simple_name})
 endfunction
 
 """

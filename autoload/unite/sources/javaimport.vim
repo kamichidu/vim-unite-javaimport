@@ -106,15 +106,15 @@ endfunction
 function! s:new_class_filter(context)
     let filter= javaimport#filter#class#new()
 
-    if has_key(a:context, 'class')
-        call filter.classname(a:context.class)
+    if has_key(a:context, 'custom_class')
+        call filter.classname(a:context.custom_class)
     endif
 
     return filter
 endfunction
 
 function! s:packages.gather_candidates(args, context)
-    let data_dir= expand('$TEMP/javaimport/data/')
+    let data_dir= s:join_path(g:javaimport_config.cache_dir, 'data/')
     let configs= javaimport#import_config()
     let jar_configs= filter(copy(configs), 'v:val.type ==# "jar"')
 
@@ -182,7 +182,7 @@ let s:classes= {
 "   custom_package - package name (constant match)
 "   custom_class   - class name (constant match)
 function! s:classes.gather_candidates(args, context)
-    let data_dir= expand('$TEMP/javaimport/data/')
+    let data_dir= s:join_path(g:javaimport_config.cache_dir, 'data/')
     let configs= javaimport#import_config()
     let directory_configs= filter(copy(configs), 'v:val.type ==# "directory"')
     let jar_configs= filter(copy(configs), 'v:val.type ==# "jar"')
