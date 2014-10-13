@@ -44,16 +44,6 @@ let g:javaimport_config.exclude_packages= get(g:javaimport_config, 'exclude_pack
 \   'sun',
 \   'sunw',
 \])
-let s:default_server= {
-\   'vm': $JAVA_HOME . ((has('win16') || has('win32') || has('win64')) ? '/bin/javaw' : '/bin/java'),
-\   'host': 'localhost',
-\   'port': 51234,
-\   'lockfile': g:javaimport_config.cache_dir . '/server.lock',
-\}
-let g:javaimport_config.server= extend(
-\   s:default_server,
-\   get(g:javaimport_config, 'server', {})
-\)
 
 command! JavaImportClearCache call javaimport#clear_cache()
 command! JavaImportSortStatements call javaimport#sort_import_statements()
