@@ -27,6 +27,7 @@ let s:P= s:V.import('Process')
 let s:L= s:V.import('Data.List')
 let s:J= s:V.import('Web.JSON')
 let s:M= s:V.import('Vim.Message')
+let s:F= s:V.import('System.File')
 unlet s:V
 
 let s:jclasspath= javaclasspath#get()
@@ -36,6 +37,7 @@ let s:vital= {
 \   'Data.List': s:L,
 \   'Web.JSON': s:J,
 \   'Vim.Message': s:M,
+\   'System.File': s:F,
 \}
 function! javaimport#vital(module)
     return s:vital[a:module]
@@ -136,70 +138,12 @@ endfunction
 "
 ""
 function! javaimport#clear_cache()
-    let l:cachedir= g:javaimport_config.cache_dir
+    let cachedir= g:javaimport_config.cache_dir
 
     " check exist
-    if !isdirectory(l:cachedir)
-        return
+    if isdirectory(cachedir)
+        call s:F.rmdir(cachedir, 'r')
     endif
-
-    call s:FILE.rmdir(l:cachedir, 'r')
-endfunction
-
-"""
-" check existing cache for config.
-"
-" @param config
-""
-function! javaimport#has_cache(config)
-    return s:CACHE.filereadable(g:javaimport_config.cache_dir, a:config.path)
-endfunction
-
-"""
-" read candidates from cache.
-"
-" @param config
-" @return [{success}, {data}]
-""
-function! javaimport#read_cache(config)
-    let l:cachedir= g:javaimport_config.cache_dir
-
-    call s:CACHE.check_old_cache(l:cachedir, a:config.path)
-
-    if !s:CACHE.filereadable(l:cachedir, a:config.path)
-        return []
-    endif
-
-    let l:cache= eval(get(s:CACHE.readfile(l:cachedir, a:config.path), 0, '{}'))
-
-    if empty(l:cache)
-        return []
-    endif
-
-    if l:cache.meta.version !=# g:javaimport_version
-        call s:CACHE.deletefile(l:cachedir, a:config.path)
-        return []
-    endif
-
-    return l:cache.data
-endfunction
-
-"""
-" write items to cache.
-"
-" @param config
-" @param items
-""
-function! javaimport#write_cache(config, items)
-    let l:cachedir= g:javaimport_config.cache_dir
-
-    call s:CACHE.deletefile(l:cachedir, a:config.path)
-    call s:CACHE.writefile(l:cachedir, a:config.path, [string({
-    \   'meta': {
-    \       'version': g:javaimport_version,
-    \   },
-    \   'data': a:items,
-    \})])
 endfunction
 
 """
@@ -323,21 +267,6 @@ function! javaimport#imported_classes()
     let manager= javaimport#import_manager#new()
 
     return manager.imported_classes()
-endfunction
-
-function! javaimport#server()
-    if exists('s:server')
-        return s:server
-    endif
-
-    let s:server= javaimport#server#launch()
-
-    augroup javaimport_ensure_terminate_server
-        autocmd!
-        autocmd VimLeavePre * call s:server.terminate()
-    augroup END
-
-    return javaimport#server()
 endfunction
 
 let &cpo= s:save_cpo
