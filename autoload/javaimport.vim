@@ -258,6 +258,12 @@ function! javaimport#add_import_statements(classnames)
     call manager.add(a:classnames)
 endfunction
 
+function! javaimport#add_static_import_statements(class_and_fields)
+    let manager= javaimport#import_manager#new()
+
+    call manager.add_static(a:class_and_fields)
+endfunction
+
 """
 " get some imported classnames (canonical names) from current buffer.
 "

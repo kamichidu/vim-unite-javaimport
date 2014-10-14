@@ -134,7 +134,22 @@ function! s:prototype.add_static(statics)
         let before_classes= self.imported_classes()
         let after_classes= s:L.uniq(before_classes + classes)
 
+        " adjust margin
+        if !empty(getline(slnum))
+            call append(slnum, '')
+            let slnum+= 1
+        endif
+
         call append(slnum, map(after_classes, 'printf("import %s;", v:val)'))
+        call append(slnum, map(fields, 'printf("import static %s;", v:val)'))
+        call append(slnum, map(methods, 'printf("import static %s;", v:val)'))
+
+        " adjust margin
+        let [_, elnum]= self.region()
+
+        if !empty(getline(elnum + 1))
+            call append(elnum, '')
+        endif
 
         call self.sort()
     finally

@@ -197,56 +197,241 @@ function! s:classes.async_gather_candidates(args, context)
 endfunction
 
 "
-" field/method source
+" field source
 "
-let s:static_import= {
-\   'name': 'javaimport/static_import',
+let s:fields= {
+\   'name': 'javaimport/field',
+\   'description': 'Gather fields from current classpath.',
+\   'sorters': ['sorter_word'],
+\   'max_candidates': 100,
 \}
 
-function! s:static_import.async_gather_candidates(args, context)
-    let args= javaimport#build_args(a:args)
+function! s:fields.gather_candidates(args, context)
+    let data_dir= s:join_path(g:javaimport_config.cache_dir, 'data/')
+    let configs= javaimport#import_config()
+    let jar_configs= filter(copy(configs), 'v:val.type ==# "jar"')
 
-    if !(has_key(args, 'classname') && has_key(args, 'jarpath'))
+    call s:analyze_fast(data_dir, map(copy(jar_configs), 'v:val.path'))
+
+    let [orig_paths, data_paths]= s:trans_data_path(data_dir, map(copy(jar_configs), 'v:val.path'))
+
+    if empty(data_paths)
         let a:context.is_async= 0
         return []
     endif
 
-    let classname= args.classname
-    let jarpath= args.jarpath
+    let package_filter= s:new_package_filter(a:context)
+    let a:context.source__paths= []
+    let a:context.source__package_filter= package_filter
+    let packages= []
+    for path in s:L.zip(orig_paths, data_paths)
+        let [ok, names]= s:read_packages(path[1])
 
-    let server= javaimport#server()
+        if ok
+            let packages+= map(copy(package_filter.apply(names)), '[path, v:val]')
+        else
+            let a:context.source__paths+= [path]
+        endif
+    endfor
 
-    " show_fields
-    if !has_key(a:context, 'source__fields_ticket')
-        let a:context.source__fields_ticket= server.request({
-        \   'command': 'fields',
-        \   'classpath': [jarpath],
-        \   'predicate': {
-        \       'classname': {'regex': classname, 'type': 'inclusive'},
-        \       'modifiers': ['public', 'static'],
-        \       'exclude_packages': get(g:javaimport_config, 'exclude_packages', []),
-        \   },
-        \})
+    let candidates= []
+    let class_filter= s:new_class_filter(a:context)
+    let a:context.source__packages= []
+    let a:context.source__class_filter= class_filter
+    for package in packages
+        let [path, name]= package
+        let [ok, classes]= s:read_classes(path[1], name)
+
+        if ok
+            " public, protected, package private class are permitted
+            call filter(classes, '
+            \   s:L.has(v:val.modifiers, "public") ||
+            \   s:L.has(v:val.modifiers, "protected") ||
+            \   (!s:L.has(v:val.modifiers, "public") && !s:L.has(v:val.modifiers, "protected"))
+            \')
+
+            for class in class_filter.apply(classes)
+                let candidates+= s:trans_field_candidate(class, filter(class.fields, '
+                \   s:L.has(v:val.modifiers, "static") && (
+                \       s:L.has(v:val.modifiers, "public") ||
+                \       s:L.has(v:val.modifiers, "protected") ||
+                \       !s:L.has(v:val.modifiers, "private")
+                \   )
+                \'))
+            endfor
+        else
+            let a:context.source__packages+= [package]
+        endif
+    endfor
+    let a:context.is_async= !empty(a:context.source__paths) || !empty(a:context.source__packages)
+    return candidates
+endfunction
+
+function! s:fields.async_gather_candidates(args, context)
+    let package_filter= a:context.source__package_filter
+    let paths= a:context.source__paths
+    let a:context.source__paths= []
+    let packages= []
+    for path in paths
+        let [ok, names]= s:read_packages(path[1])
+
+        if ok
+            let packages+= map(copy(package_filter.apply(names)), '[path, v:val]')
+        else
+            let a:context.source__paths+= [path]
+        endif
+    endfor
+
+    let candidates= []
+    let class_filter= s:new_class_filter(a:context)
+    let packages+= a:context.source__packages
+    let a:context.source__packages= []
+    for package in packages
+        let [path, name]= package
+        let [ok, classes]= s:read_classes(path[1], name)
+
+        if ok
+            " public, protected, package private class are permitted
+            call filter(classes, '
+            \   s:L.has(v:val.modifiers, "public") ||
+            \   s:L.has(v:val.modifiers, "protected") ||
+            \   (!s:L.has(v:val.modifiers, "public") && !s:L.has(v:val.modifiers, "protected"))
+            \')
+
+            for class in class_filter.apply(classes)
+                let candidates+= s:trans_field_candidate(class, filter(class.fields, '
+                \   s:L.has(v:val.modifiers, "static") && (
+                \       s:L.has(v:val.modifiers, "public") ||
+                \       s:L.has(v:val.modifiers, "protected") ||
+                \       !s:L.has(v:val.modifiers, "private")
+                \   )
+                \'))
+            endfor
+        else
+            let a:context.source__packages+= [package]
+        endif
+    endfor
+    let a:context.is_async= !empty(a:context.source__paths) || !empty(a:context.source__packages)
+    return candidates
+endfunction
+
+"
+" method source
+"
+let s:methods= {
+\   'name': 'javaimport/method',
+\   'description': 'Gather methods from current classpath.',
+\   'sorters': ['sorter_word'],
+\   'max_candidates': 100,
+\}
+
+function! s:methods.gather_candidates(args, context)
+    let data_dir= s:join_path(g:javaimport_config.cache_dir, 'data/')
+    let configs= javaimport#import_config()
+    let jar_configs= filter(copy(configs), 'v:val.type ==# "jar"')
+
+    call s:analyze_fast(data_dir, map(copy(jar_configs), 'v:val.path'))
+
+    let [orig_paths, data_paths]= s:trans_data_path(data_dir, map(copy(jar_configs), 'v:val.path'))
+
+    if empty(data_paths)
+        let a:context.is_async= 0
+        return []
     endif
-    " show_methods
-    if !has_key(a:context, 'source__methods_ticket')
-        let a:context.source__methods_ticket= server.request({
-        \   'command': 'methods',
-        \   'classpath': [jarpath],
-        \   'predicate': {
-        \       'classname': {'regex': classname, 'type': 'inclusive'},
-        \       'modifiers': ['public', 'static'],
-        \       'exclude_packages': get(g:javaimport_config, 'exclude_packages', []),
-        \   },
-        \})
-    endif
 
-    let fields_response= server.receive(a:context.source__fields_ticket)
-    let methods_response= server.receive(a:context.source__methods_ticket)
+    let package_filter= s:new_package_filter(a:context)
+    let a:context.source__paths= []
+    let a:context.source__package_filter= package_filter
+    let packages= []
+    for path in s:L.zip(orig_paths, data_paths)
+        let [ok, names]= s:read_packages(path[1])
 
-    " TODO
-    let a:context.is_async= 0
-    return []
+        if ok
+            let packages+= map(copy(package_filter.apply(names)), '[path, v:val]')
+        else
+            let a:context.source__paths+= [path]
+        endif
+    endfor
+
+    let candidates= []
+    let class_filter= s:new_class_filter(a:context)
+    let a:context.source__packages= []
+    let a:context.source__class_filter= class_filter
+    for package in packages
+        let [path, name]= package
+        let [ok, classes]= s:read_classes(path[1], name)
+
+        if ok
+            " public, protected, package private class are permitted
+            call filter(classes, '
+            \   s:L.has(v:val.modifiers, "public") ||
+            \   s:L.has(v:val.modifiers, "protected") ||
+            \   (!s:L.has(v:val.modifiers, "public") && !s:L.has(v:val.modifiers, "protected"))
+            \')
+
+            for class in class_filter.apply(classes)
+                let candidates+= s:trans_method_candidate(class, filter(class.methods, '
+                \   s:L.has(v:val.modifiers, "static") && (
+                \       s:L.has(v:val.modifiers, "public") ||
+                \       s:L.has(v:val.modifiers, "protected") ||
+                \       (!s:L.has(v:val.modifiers, "public") && !s:L.has(v:val.modifiers, "protected"))
+                \   )
+                \'))
+            endfor
+        else
+            let a:context.source__packages+= [package]
+        endif
+    endfor
+    let a:context.is_async= !empty(a:context.source__paths) || !empty(a:context.source__packages)
+    return candidates
+endfunction
+
+function! s:methods.async_gather_candidates(args, context)
+    let package_filter= a:context.source__package_filter
+    let paths= a:context.source__paths
+    let a:context.source__paths= []
+    let packages= []
+    for path in paths
+        let [ok, names]= s:read_packages(path[1])
+
+        if ok
+            let packages+= map(copy(package_filter.apply(names)), '[path, v:val]')
+        else
+            let a:context.source__paths+= [path]
+        endif
+    endfor
+
+    let candidates= []
+    let class_filter= s:new_class_filter(a:context)
+    let packages+= a:context.source__packages
+    let a:context.source__packages= []
+    for package in packages
+        let [path, name]= package
+        let [ok, classes]= s:read_classes(path[1], name)
+
+        if ok
+            " public, protected, package private class are permitted
+            call filter(classes, '
+            \   s:L.has(v:val.modifiers, "public") ||
+            \   s:L.has(v:val.modifiers, "protected") ||
+            \   (!s:L.has(v:val.modifiers, "public") && !s:L.has(v:val.modifiers, "protected"))
+            \')
+
+            for class in class_filter.apply(classes)
+                let candidates+= s:trans_method_candidate(class, filter(class.methods, '
+                \   s:L.has(v:val.modifiers, "static") && (
+                \       s:L.has(v:val.modifiers, "public") ||
+                \       s:L.has(v:val.modifiers, "protected") ||
+                \       (!s:L.has(v:val.modifiers, "public") && !s:L.has(v:val.modifiers, "protected"))
+                \   )
+                \'))
+            endfor
+        else
+            let a:context.source__packages+= [package]
+        endif
+    endfor
+    let a:context.is_async= !empty(a:context.source__paths) || !empty(a:context.source__packages)
+    return candidates
 endfunction
 
 function! s:analyze_fast(data_dir, paths)
@@ -349,6 +534,18 @@ function! s:read_classes(data_path, package)
     endif
 endfunction
 
+function! s:scope_symbol(modifiers)
+    if s:L.has(a:modifiers, 'public')
+        return '+'
+    elseif s:L.has(a:modifiers, 'protected')
+        return '#'
+    elseif s:L.has(a:modifiers, 'private')
+        return '-'
+    else
+        return ' '
+    endif
+endfunction
+
 function! s:trans_package_candidate(packages)
     return map(copy(a:packages), "{
     \   'word': v:val,
@@ -365,8 +562,26 @@ function! s:trans_class_candidate(classes)
     \}")
 endfunction
 
+function! s:trans_field_candidate(class, fields)
+    return map(copy(a:fields), "{
+    \   'word': v:val.name,
+    \   'kind': 'javaimport/field',
+    \   'abbr': s:scope_symbol(v:val.modifiers) . ' ' . v:val.name . ' : ' . v:val.type . ' ... ' . a:class.canonical_name,
+    \   'action__class': a:class.canonical_name,
+    \   'action__field': v:val.name,
+    \}")
+endfunction
+
+function! s:trans_method_candidate(class, methods)
+    return map(copy(a:methods), "{
+    \   'word': a:class.canonical_name . '.' . v:val.name,
+    \   'kind': 'javaimport/method',
+    \   'abbr': v:val.name . '(' . join(map(copy(v:val.parameters), 'v:val.type'), ', ') . ') : ' . v:val.return_type . ' - ' . a:class.canonical_name,
+    \}")
+endfunction
+
 function! unite#sources#javaimport#define()
-    return [deepcopy(s:packages), deepcopy(s:classes)]
+    return [deepcopy(s:packages), deepcopy(s:classes), deepcopy(s:fields), deepcopy(s:methods)]
 endfunction
 
 let &cpo= s:save_cpo

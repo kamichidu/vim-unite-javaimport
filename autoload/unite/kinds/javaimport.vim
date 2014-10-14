@@ -80,26 +80,53 @@ function! s:class.action_table.preview.func(candidate)
     call javaimport#preview(a:candidate.action__javadoc_url)
 endfunction
 
-" let s:class.action_table.static_import= {
-" \   'description': 'Open new unite buffer for static import',
-" \   'is_quit': 0,
-" \   'is_selectable': 0,
-" \   'is_start': 1,
-" \}
-" function! s:class.action_table.static_import.func(candidate)
-"     if empty(a:candidate.action__jar_path)
-"         return
-"     endif
 "
-"     call unite#start_script([[
-"     \   'javaimport/static_import',
-"     \   'classname=' . a:candidate.action__canonical_name,
-"     \   'jarpath=' . a:candidate.action__jar_path,
-"     \]])
-" endfunction
+" field kind
+"
+let s:field = {
+\   'name': 'javaimport/field',
+\   'parents': ['common'],
+\   'default_action': 'import',
+\   'action_table': {},
+\}
+
+let s:field.action_table.import= {
+\   'description': 'Import selected fields.',
+\   'is_selectable': 1,
+\}
+function! s:field.action_table.import.func(candidates)
+    let save_pos= getpos('.')
+    try
+        let class_and_fields= []
+        for candidate in a:candidates
+            let class_and_fields+= [{
+            \   'class': candidate.action__class,
+            \   'field': candidate.action__field,
+            \}]
+        endfor
+
+        call javaimport#add_static_import_statements(class_and_fields)
+        call javaimport#sort_import_statements()
+    finally
+        " setpos([bufnum, lnum, col, off])
+        call setpos('.', [save_pos[0], save_pos[1] + 1, save_pos[2], save_pos[3]])
+    endtry
+endfunction
+
+let s:field.action_table.preview= {
+\   'description': 'Show javadoc if presented.',
+\   'is_quit': 0,
+\}
+function! s:field.action_table.preview.func(candidate)
+    if empty(a:candidate.action__javadoc_url)
+        return
+    endif
+
+    call javaimport#preview(a:candidate.action__javadoc_url)
+endfunction
 
 function! unite#kinds#javaimport#define()
-    return [deepcopy(s:package), deepcopy(s:class)]
+    return [deepcopy(s:package), deepcopy(s:class), deepcopy(s:field)]
 endfunction
 
 let &cpo= s:save_cpo
