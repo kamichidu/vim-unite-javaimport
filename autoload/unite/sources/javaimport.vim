@@ -29,7 +29,7 @@ let s:M= javaimport#vital('Vim.Message')
 
 " autoload/unite/sources/javaimport.vim
 let s:plugin_dir= expand('<sfile>:h:h:h:h') . '/'
-let s:javaimport_classpath= s:plugin_dir . 'bin/javaimport-0.2.3.jar'
+let s:javaimport_classpath= s:plugin_dir . 'bin/javaimport-0.2.4.jar'
 let s:config_classpath= s:plugin_dir . 'config/'
 
 let s:jlang= javalang#get()
