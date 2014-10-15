@@ -250,7 +250,7 @@ function! s:fields.gather_candidates(args, context)
             call filter(classes, '
             \   s:L.has(v:val.modifiers, "public") ||
             \   s:L.has(v:val.modifiers, "protected") ||
-            \   (!s:L.has(v:val.modifiers, "public") && !s:L.has(v:val.modifiers, "protected"))
+            \   !s:L.has(v:val.modifiers, "private")
             \')
 
             for class in class_filter.apply(classes)
@@ -298,7 +298,7 @@ function! s:fields.async_gather_candidates(args, context)
             call filter(classes, '
             \   s:L.has(v:val.modifiers, "public") ||
             \   s:L.has(v:val.modifiers, "protected") ||
-            \   (!s:L.has(v:val.modifiers, "public") && !s:L.has(v:val.modifiers, "protected"))
+            \   !s:L.has(v:val.modifiers, "private")
             \')
 
             for class in class_filter.apply(classes)
@@ -369,7 +369,7 @@ function! s:methods.gather_candidates(args, context)
             call filter(classes, '
             \   s:L.has(v:val.modifiers, "public") ||
             \   s:L.has(v:val.modifiers, "protected") ||
-            \   (!s:L.has(v:val.modifiers, "public") && !s:L.has(v:val.modifiers, "protected"))
+            \   !s:L.has(v:val.modifiers, "private")
             \')
 
             for class in class_filter.apply(classes)
@@ -377,7 +377,7 @@ function! s:methods.gather_candidates(args, context)
                 \   s:L.has(v:val.modifiers, "static") && (
                 \       s:L.has(v:val.modifiers, "public") ||
                 \       s:L.has(v:val.modifiers, "protected") ||
-                \       (!s:L.has(v:val.modifiers, "public") && !s:L.has(v:val.modifiers, "protected"))
+                \       !s:L.has(v:val.modifiers, "private")
                 \   )
                 \'))
             endfor
@@ -417,7 +417,7 @@ function! s:methods.async_gather_candidates(args, context)
             call filter(classes, '
             \   s:L.has(v:val.modifiers, "public") ||
             \   s:L.has(v:val.modifiers, "protected") ||
-            \   (!s:L.has(v:val.modifiers, "public") && !s:L.has(v:val.modifiers, "protected"))
+            \   !s:L.has(v:val.modifiers, "private")
             \')
 
             for class in class_filter.apply(classes)
@@ -425,7 +425,7 @@ function! s:methods.async_gather_candidates(args, context)
                 \   s:L.has(v:val.modifiers, "static") && (
                 \       s:L.has(v:val.modifiers, "public") ||
                 \       s:L.has(v:val.modifiers, "protected") ||
-                \       (!s:L.has(v:val.modifiers, "public") && !s:L.has(v:val.modifiers, "protected"))
+                \       !s:L.has(v:val.modifiers, "private")
                 \   )
                 \'))
             endfor
