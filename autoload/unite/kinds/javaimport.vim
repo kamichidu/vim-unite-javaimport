@@ -68,6 +68,18 @@ function! s:class.action_table.import.func(candidates)
     endtry
 endfunction
 
+let s:class.action_table.expand= {
+\   'description': 'Open new unite buffer with selected class.',
+\   'is_selectable': 0,
+\   'is_start': 1,
+\}
+function! s:class.action_table.expand.func(candidate)
+    call unite#start_script(
+    \   [['javaimport/field'], ['javaimport/method']],
+    \   {'custom_javaimport_package': a:candidate.action__class.package, 'custom_javaimport_class': a:candidate.action__class.simple_name}
+    \)
+endfunction
+
 let s:class.action_table.preview= {
 \   'description': 'Show javadoc if presented.',
 \   'is_quit': 0,
