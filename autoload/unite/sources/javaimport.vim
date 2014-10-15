@@ -454,8 +454,16 @@ function! s:analyze(data_dir, paths)
         return
     endif
 
+    let jvm= g:javaimport_config.jvm
+    let jvmargs= g:javaimport_config.jvmargs
+
+    if !executable(jvm)
+        throw printf("javaimport: Cannot execute g:javaimport_config.jvm `%s'", jvm)
+    endif
+
     call s:P.spawn(join([
-    \   expand('$JAVA_HOME/bin/java'),
+    \   jvm,
+    \   jvmargs,
     \   '-cp', join([s:config_classpath, s:javaimport_classpath], s:jlang.constants.path_separator),
     \   'jp.michikusa.chitose.javaimport.cli.App',
     \   '--outputdir', a:data_dir,

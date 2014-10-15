@@ -33,6 +33,12 @@ if !exists('g:javaimport_use_default_mapping')
     let g:javaimport_use_default_mapping= 1
 endif
 
+if has('win64') || has('win32') || has('win16') || has('win95')
+    let s:default_jvm= expand('$JAVA_HOME/bin/javaw')
+else
+    let s:default_jvm= expand('$JAVA_HOME/bin/java')
+endif
+
 let g:javaimport_config= get(g:, 'javaimport_config', {})
 let g:javaimport_config.cache_dir= get(g:javaimport_config, 'cache_dir', expand('~/.javaimport/'))
 let g:javaimport_config.preview_using= get(g:javaimport_config, 'preview_using', 'w3m')
@@ -44,6 +50,8 @@ let g:javaimport_config.exclude_packages= get(g:javaimport_config, 'exclude_pack
 \   'sun',
 \   'sunw',
 \])
+let g:javaimport_config.jvm= get(g:javaimport_config, 'jvm', s:default_jvm)
+let g:javaimport_config.jvmargs= get(g:javaimport_config, 'jvmargs', '')
 
 command! JavaImportClearCache call javaimport#clear_cache()
 command! JavaImportSortStatements call javaimport#sort_import_statements()
