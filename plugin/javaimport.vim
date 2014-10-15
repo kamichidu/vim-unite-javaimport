@@ -44,7 +44,6 @@ let g:javaimport_config.cache_dir= get(g:javaimport_config, 'cache_dir', expand(
 let g:javaimport_config.preview_using= get(g:javaimport_config, 'preview_using', 'w3m')
 let g:javaimport_config.debug_mode= get(g:javaimport_config, 'debug_mode', 0)
 let g:javaimport_config.exclude_packages= get(g:javaimport_config, 'exclude_packages', [
-\   'java.lang',
 \   'com.oracle',
 \   'com.sun',
 \   'sun',

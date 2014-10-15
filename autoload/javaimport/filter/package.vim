@@ -46,6 +46,16 @@ function! s:filter.exclude(name)
     let self.__regexes+= [regex]
 endfunction
 
+function! s:filter.exclude_exactly(name)
+    let regex= {'name': a:name}
+
+    function! regex.apply(value)
+        return a:value !=# self.name
+    endfunction
+
+    let self.__regexes+= [regex]
+endfunction
+
 function! javaimport#filter#package#new()
     return deepcopy(s:filter)
 endfunction

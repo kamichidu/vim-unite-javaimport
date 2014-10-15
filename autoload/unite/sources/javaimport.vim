@@ -128,6 +128,9 @@ function! s:classes.gather_candidates(args, context)
     endif
 
     let package_filter= s:new_package_filter(a:context)
+
+    call package_filter.exclude_exactly('java.lang')
+
     let a:context.source__paths= []
     let a:context.source__package_filter= package_filter
     let packages= []
