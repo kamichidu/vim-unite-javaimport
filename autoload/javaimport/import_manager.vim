@@ -243,16 +243,48 @@ function! s:import_manager__imported_fields_and_methods() dict
     return s:L.uniq(statics)
 endfunction
 
-function! javaimport#import_manager#new()
-    return {
-    \   'add': function('s:import_manager__add'),
-    \   'remove': function('s:import_manager__remove'),
-    \   'sort': function('s:import_manager__sort'),
-    \   'region': function('s:import_manager__region'),
-    \   'imported_classes': function('s:import_manager__imported_classes'),
-    \   'imported_fields_and_methods': function('s:import_manager__imported_fields_and_methods'),
-    \}
-endfunction
+if has('patch-7.3.1170')
+    function! javaimport#import_manager#new()
+        return {
+        \   'add': function('s:import_manager__add'),
+        \   'remove': function('s:import_manager__remove'),
+        \   'sort': function('s:import_manager__sort'),
+        \   'region': function('s:import_manager__region'),
+        \   'imported_classes': function('s:import_manager__imported_classes'),
+        \   'imported_fields_and_methods': function('s:import_manager__imported_fields_and_methods'),
+        \}
+    endfunction
+else
+    let s:__object__= {}
+
+    function! s:__object__.add(...)
+        return call('s:import_manager__add', a:000, self)
+    endfunction
+
+    function! s:__object__.remove(...)
+        return call('s:import_manager__remove', a:000, self)
+    endfunction
+
+    function! s:__object__.sort(...)
+        return call('s:import_manager__sort', a:000, self)
+    endfunction
+
+    function! s:__object__.region(...)
+        return call('s:import_manager__region', a:000, self)
+    endfunction
+
+    function! s:__object__.imported_classes(...)
+        return call('s:import_manager__imported_classes', a:000, self)
+    endfunction
+
+    function! s:__object__.imported_fields_and_methods(...)
+        return call('s:import_manager__imported_fields_and_methods', a:000, self)
+    endfunction
+
+    function! javaimport#import_manager#new()
+        return deepcopy(s:__object__)
+    endfunction
+endif
 
 function! s:trans_args(...)
     let args= []
