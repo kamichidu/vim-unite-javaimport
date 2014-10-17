@@ -75,7 +75,7 @@ function! s:import_manager__remove(...) dict
     let filtered_fields_and_methods= []
     for field_or_method in self.imported_fields_and_methods()
         if !s:L.has(fields_and_methods, field_or_method)
-            let filtered_fields_and_methods+= [{'class': join(split(field_or_method, '\.')[ : -1], '.'), 'field': split(field_or_method, '\.')[-1]}]
+            let filtered_fields_and_methods+= [{'class': join(split(field_or_method, '\.')[ : -2], '.'), 'field': split(field_or_method, '\.')[-1]}]
         endif
     endfor
 

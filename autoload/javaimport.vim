@@ -212,39 +212,33 @@ endfunction
 " remove unnecessary import statements from current buffer.
 ""
 function! javaimport#remove_unnecesarries()
+    let manager= javaimport#import_manager#new()
+    let removals= []
+
     let save_pos= getpos('.')
     try
-        let manager= javaimport#import_manager#new()
-
-        " gather already existed import statements
-        let [slnum, elnum]= manager.region()
-
-        if [slnum, elnum] == [0, 0]
-            return
-        endif
-
         let classes= manager.imported_classes()
+        let fields_and_methods= manager.imported_fields_and_methods()
 
-        " delete old import statements
-        execute slnum . ',' . elnum . 'delete _'
-
-        let remainings= []
-        " find unnecessary statements
         for class in classes
-            let simple_name= matchstr(class, '\.\zs\w\+$')
+            let simple_name= split(class, '\.')[-1]
 
-            " move cursor to 1st line
-            call setpos('.', ['%', 1, 1, 0])
-            if search('\C\<' . simple_name . '\>', 'nW') != 0
-                let remainings+= [class]
+            if simple_name !=# '*' && !s:is_symbol_used(simple_name)
+                let removals+= [{'class': class}]
             endif
         endfor
+        for field_or_method in fields_and_methods
+            let name= split(field_or_method, '\.')[-1]
 
-        " append new import statements
-        call manager.add(remainings)
+            if name !=# '*' && !s:is_symbol_used(name)
+                let removals+= [{'class': join(split(field_or_method, '\.')[ : -2], '.'), 'field': split(field_or_method, '\.')[-1]}]
+            endif
+        endfor
     finally
         call setpos('.', save_pos)
     endtry
+
+    call manager.remove(removals)
 endfunction
 
 """
@@ -273,6 +267,32 @@ function! javaimport#imported_classes()
     let manager= javaimport#import_manager#new()
 
     return manager.imported_classes()
+endfunction
+
+function! s:is_symbol_used(symbol)
+    let save_pos= getpos('.')
+    try
+        call cursor(1, 1)
+        while 1
+            let lnum= search('\C\<' . a:symbol . '\>', 'Wce')
+
+            if lnum == 0
+                return 0
+            endif
+
+            let in_import_decl= getline(lnum) =~# '\C\<import\>'
+            let in_comment= synIDattr(synID(line('.'), col('.'), 1), 'name') =~# '\c\%(comment\)'
+
+            if !in_import_decl && !in_comment
+                return 1
+            endif
+
+            normal w
+        endwhile
+        return 0
+    finally
+        call setpos('.', save_pos)
+    endtry
 endfunction
 
 let &cpo= s:save_cpo
