@@ -40,6 +40,10 @@ function! s:import_manager__add(...) dict
     try
         let [_, elnum]= self.region()
 
+        if elnum == 0
+            let elnum= s:search_package_declaration()
+        endif
+
         call append(elnum,
         \   map(copy(classes), 'printf("import %s;", v:val.class)') +
         \   map(copy(fields),  'printf("import static %s.%s;", v:val.class, v:val.field)') +
@@ -202,21 +206,6 @@ function! s:import_manager__region() dict
             return [slnum, elnum]
         endif
 
-        call cursor(1, 1)
-        while 1
-            let lnum= search('\C\<package\>', 'Wce')
-
-            if lnum == 0 || s:syntax_of() !~# '\c\%(comment\)'
-                break
-            endif
-
-            normal w
-        endwhile
-
-        if lnum != 0
-            return [lnum, lnum]
-        endif
-
         return [0, 0]
     finally
         call setpos('.', save_pos)
@@ -281,6 +270,26 @@ endfunction
 
 function! s:syntax_of()
     return synIDattr(synID(line('.'), col('.'), 1), 'name')
+endfunction
+
+function! s:search_package_declaration()
+    let save_pos= getpos('.')
+    try
+        call cursor(1, 1)
+        while 1
+            let lnum= search('\C\<package\>', 'Wce')
+
+            if lnum == 0 || s:syntax_of() !~# '\c\%(comment\)'
+                break
+            endif
+
+            normal w
+        endwhile
+
+        return lnum
+    finally
+        call setpos('.', save_pos)
+    endtry
 endfunction
 
 let &cpo= s:save_cpo
