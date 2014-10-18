@@ -180,7 +180,7 @@ function! s:classes.async_gather_candidates(args, context)
     endfor
 
     let candidates= []
-    let class_filter= s:new_class_filter(a:context)
+    let class_filter= a:context.source__class_filter
     let packages+= a:context.source__packages
     let a:context.source__packages= []
     for package in packages
