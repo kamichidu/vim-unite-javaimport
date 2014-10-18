@@ -166,18 +166,6 @@ function! javaimport#preview(url)
     endif
 endfunction
 
-function! javaimport#build_args(args)
-    let result= {}
-
-    for arg in a:args
-        let pair= split(arg, '=')
-
-        let result[pair[0]]= get(pair, 1, '')
-    endfor
-
-    return result
-endfunction
-
 """
 " start unite-javaimport by simple_name to import quickly.
 "
