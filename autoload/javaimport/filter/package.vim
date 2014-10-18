@@ -26,38 +26,41 @@ let s:filter= javaimport#filter#base#new()
 
 " name: 'java.util' or 'util', ...
 function! s:filter.contains(name)
-    let regex= {'name': a:name}
-
-    function! regex.apply(value)
-        return stridx(a:value, self.name) != -1
-    endfunction
-
-    let self.__regexes+= [regex]
+    let self.__regexes+= [{
+    \   'name': a:name,
+    \   'apply': function('s:match_by_stridx'),
+    \}]
 endfunction
 
 " name: 'java.util' or ...
 function! s:filter.exclude(name)
-    let regex= {'name': escape(a:name, '.\')}
-
-    function! regex.apply(value)
-        return a:value !~# '\C^' . self.name . '\>'
-    endfunction
-
-    let self.__regexes+= [regex]
+    let self.__regexes+= [{
+    \   'name': escape(a:name, '.\'),
+    \   'apply': function('s:match_prefix'),
+    \}]
 endfunction
 
 function! s:filter.exclude_exactly(name)
-    let regex= {'name': a:name}
-
-    function! regex.apply(value)
-        return a:value !=# self.name
-    endfunction
-
-    let self.__regexes+= [regex]
+    let self.__regexes+= [{
+    \   'name': a:name,
+    \   'apply': function('s:match_exactly'),
+    \}]
 endfunction
 
 function! javaimport#filter#package#new()
     return deepcopy(s:filter)
+endfunction
+
+function! s:match_by_stridx(value) dict
+    return stridx(a:value, self.name) != -1
+endfunction
+
+function! s:match_prefix(value) dict
+    return a:value !~# '\C^' . self.name . '\>'
+endfunction
+
+function! s:match_exactly(value) dict
+    return a:value !=# self.name
 endfunction
 
 let &cpo= s:save_cpo

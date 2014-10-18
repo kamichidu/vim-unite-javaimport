@@ -25,17 +25,18 @@ set cpo&vim
 let s:filter= javaimport#filter#package#new()
 
 function! s:filter.classname(name)
-    let regex= {'name': a:name}
-
-    function! regex.apply(value)
-        return a:value.simple_name ==# self.name
-    endfunction
-
-    let self.__regexes+= [regex]
+    let self.__regexes+= [{
+    \   'name': a:name,
+    \   'apply': function('s:match_for_simple_name'),
+    \}]
 endfunction
 
 function! javaimport#filter#class#new()
     return deepcopy(s:filter)
+endfunction
+
+function! s:match_for_simple_name(value) dict
+    return a:value.simple_name ==# self.name
 endfunction
 
 let &cpo= s:save_cpo
