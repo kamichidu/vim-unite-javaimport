@@ -191,22 +191,19 @@ endfunction
 "
 ""
 function! javaimport#sort_import_statements()
-    let manager= javaimport#import_manager#new()
-
-    call manager.sort()
+    call s:import_manager().sort()
 endfunction
 
 """
 " remove unnecessary import statements from current buffer.
 ""
 function! javaimport#remove_unnecesarries()
-    let manager= javaimport#import_manager#new()
     let removals= []
 
     let save_pos= getpos('.')
     try
-        let classes= manager.imported_classes()
-        let fields_and_methods= manager.imported_fields_and_methods()
+        let classes= s:import_manager().imported_classes()
+        let fields_and_methods= s:import_manager().imported_fields_and_methods()
 
         for class in classes
             let simple_name= split(class, '\.')[-1]
@@ -226,13 +223,11 @@ function! javaimport#remove_unnecesarries()
         call setpos('.', save_pos)
     endtry
 
-    call manager.remove(removals)
+    call s:import_manager().remove(removals)
 endfunction
 
 function! javaimport#import(data)
-    let manager= javaimport#import_manager#new()
-
-    call manager.add(a:data)
+    call s:import_manager().add(a:data)
 endfunction
 
 """
@@ -241,9 +236,7 @@ endfunction
 " @return list of string
 ""
 function! javaimport#imported_classes()
-    let manager= javaimport#import_manager#new()
-
-    return manager.imported_classes()
+    return s:import_manager().imported_classes()
 endfunction
 
 function! s:is_symbol_used(symbol)
@@ -270,6 +263,13 @@ function! s:is_symbol_used(symbol)
     finally
         call setpos('.', save_pos)
     endtry
+endfunction
+
+function! s:import_manager()
+    if !exists('s:import_manager')
+        let s:import_manager= javaimport#import_manager#new()
+    endif
+    return s:import_manager
 endfunction
 
 let &cpo= s:save_cpo
