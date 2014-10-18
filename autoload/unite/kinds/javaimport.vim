@@ -56,16 +56,9 @@ let s:class.action_table.import= {
 \   'is_selectable': 1,
 \}
 function! s:class.action_table.import.func(candidates)
-    let save_pos= getpos('.')
-    try
-        let canonical_names= map(deepcopy(a:candidates), 'v:val.action__canonical_name')
-
-        call javaimport#add_import_statements(canonical_names)
-        call javaimport#sort_import_statements()
-    finally
-        " setpos([bufnum, lnum, col, off])
-        call setpos('.', [save_pos[0], save_pos[1] + 1, save_pos[2], save_pos[3]])
-    endtry
+    call javaimport#import(map(copy(a:candidates), "{
+    \   'class': v:val.action__class.canonical_name,
+    \}"))
 endfunction
 
 let s:class.action_table.expand= {
@@ -107,38 +100,35 @@ let s:field.action_table.import= {
 \   'is_selectable': 1,
 \}
 function! s:field.action_table.import.func(candidates)
-    let save_pos= getpos('.')
-    try
-        let class_and_fields= []
-        for candidate in a:candidates
-            let class_and_fields+= [{
-            \   'class': candidate.action__class,
-            \   'field': candidate.action__field,
-            \}]
-        endfor
-
-        call javaimport#add_static_import_statements(class_and_fields)
-        call javaimport#sort_import_statements()
-    finally
-        " setpos([bufnum, lnum, col, off])
-        call setpos('.', [save_pos[0], save_pos[1] + 1, save_pos[2], save_pos[3]])
-    endtry
+    call javaimport#import(map(copy(a:candidates), "{
+    \   'class': v:val.action__class.canonical_name,
+    \   'field': v:val.action__field.name,
+    \}"))
 endfunction
 
-let s:field.action_table.preview= {
-\   'description': 'Show javadoc if presented.',
-\   'is_quit': 0,
+"
+" method kind
+"
+let s:method = {
+\   'name': 'javaimport/method',
+\   'parents': ['common'],
+\   'default_action': 'import',
+\   'action_table': {},
 \}
-function! s:field.action_table.preview.func(candidate)
-    if empty(a:candidate.action__javadoc_url)
-        return
-    endif
 
-    call javaimport#preview(a:candidate.action__javadoc_url)
+let s:method.action_table.import= {
+\   'description': 'Import selected methods.',
+\   'is_selectable': 1,
+\}
+function! s:method.action_table.import.func(candidates)
+    call javaimport#import(map(copy(a:candidates), "{
+    \   'class': v:val.action__class.canonical_name,
+    \   'method': v:val.action__method.name,
+    \}"))
 endfunction
 
 function! unite#kinds#javaimport#define()
-    return [deepcopy(s:package), deepcopy(s:class), deepcopy(s:field)]
+    return [deepcopy(s:package), deepcopy(s:class), deepcopy(s:field), deepcopy(s:method)]
 endfunction
 
 let &cpo= s:save_cpo

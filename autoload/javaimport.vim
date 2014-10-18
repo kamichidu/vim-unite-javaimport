@@ -241,21 +241,10 @@ function! javaimport#remove_unnecesarries()
     call manager.remove(removals)
 endfunction
 
-"""
-" add import statements for classnames on current buffer.
-"
-" @param classnames will be imported
-""
-function! javaimport#add_import_statements(classnames)
+function! javaimport#import(data)
     let manager= javaimport#import_manager#new()
 
-    call manager.add(a:classnames)
-endfunction
-
-function! javaimport#add_static_import_statements(class_and_fields)
-    let manager= javaimport#import_manager#new()
-
-    call manager.add_static(a:class_and_fields)
+    call manager.add(a:data)
 endfunction
 
 """
