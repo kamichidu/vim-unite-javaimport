@@ -24,28 +24,74 @@ set cpo&vim
 
 let s:filter= javaimport#filter#base#new()
 
-" name: 'java.util' or 'util', ...
-function! s:filter.contains(name)
-    let self.__regexes+= [{
-    \   'name': a:name,
-    \   'apply': function('s:match_by_stridx'),
-    \}]
-endfunction
+if has('patch-7.3.1170')
+    " name: 'java.util' or 'util', ...
+    function! s:filter.contains(name)
+        let self.__regexes+= [{
+        \   'name': a:name,
+        \   'apply': function('s:match_by_stridx'),
+        \}]
+    endfunction
 
-" name: 'java.util' or ...
-function! s:filter.exclude(name)
-    let self.__regexes+= [{
-    \   'name': escape(a:name, '.\'),
-    \   'apply': function('s:match_prefix'),
-    \}]
-endfunction
+    " name: 'java.util' or ...
+    function! s:filter.exclude(name)
+        let self.__regexes+= [{
+        \   'name': escape(a:name, '.\'),
+        \   'apply': function('s:match_prefix'),
+        \}]
+    endfunction
 
-function! s:filter.exclude_exactly(name)
-    let self.__regexes+= [{
-    \   'name': a:name,
-    \   'apply': function('s:match_exactly'),
-    \}]
-endfunction
+    function! s:filter.exclude_exactly(name)
+        let self.__regexes+= [{
+        \   'name': a:name,
+        \   'apply': function('s:match_exactly'),
+        \}]
+    endfunction
+else
+    let s:contains_regex= {}
+
+    function! s:contains_regex.apply(value)
+        return call('s:match_by_stridx', [a:value], self)
+    endfunction
+
+    " name: 'java.util' or 'util', ...
+    function! s:filter.contains(name)
+        let regex= deepcopy(s:contains_regex)
+
+        let regex.name= a:name
+
+        let self.__regexes+= [regex]
+    endfunction
+
+    let s:exclude_regex= {}
+
+    function! s:exclude_regex.apply(value)
+        return call('s:match_prefix', [a:value], self)
+    endfunction
+
+    " name: 'java.util' or ...
+    function! s:filter.exclude(name)
+        let regex= deepcopy(s:exclude_regex)
+
+        let regex.name= a:name
+
+        let self.__regexes+= [regex]
+    endfunction
+
+    let s:exclude_exactly_regex= {}
+
+    function! s:exclude_exactly_regex.apply(value)
+        return call('s:match_exactly', [a:value], self)
+    endfunction
+
+    function! s:filter.exclude_exactly(name)
+        let regex= deepcopy(s:exclude_exactly_regex)
+
+        let regex.name= a:name
+
+        let self.__regexes+= [regex]
+    endfunction
+endif
 
 function! javaimport#filter#package#new()
     return deepcopy(s:filter)

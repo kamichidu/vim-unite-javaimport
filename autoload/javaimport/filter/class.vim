@@ -24,12 +24,28 @@ set cpo&vim
 
 let s:filter= javaimport#filter#package#new()
 
-function! s:filter.classname(name)
-    let self.__regexes+= [{
-    \   'name': a:name,
-    \   'apply': function('s:match_for_simple_name'),
-    \}]
-endfunction
+if has('patch-7.3.1170')
+    function! s:filter.classname(name)
+        let self.__regexes+= [{
+        \   'name': a:name,
+        \   'apply': function('s:match_for_simple_name'),
+        \}]
+    endfunction
+else
+    let s:regex= {}
+
+    function! s:regex.apply(value)
+        return call('s:match_for_simple_name', [a:value], self)
+    endfunction
+
+    function! s:filter.classname(name)
+        let regex= deepcopy(s:regex)
+
+        let regex.name= a:name
+
+        let self.__regexes+= [regex]
+    endfunction
+endif
 
 function! javaimport#filter#class#new()
     return deepcopy(s:filter)
