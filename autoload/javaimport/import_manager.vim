@@ -110,21 +110,25 @@ function! s:import_manager__sort() dict
 
         " separate each statements on defferent top-level domain
         let statements= []
-        let last_domain= split(get(classes, 0, ''), '\.')[0]
-        for class in classes
-            let domain= split(class, '\.')[0]
+        if !empty(classes)
+            let last_domain= split(get(classes, 0, ''), '\.')[0]
+            for class in classes
+                let domain= split(class, '\.')[0]
 
-            if domain !=# last_domain
-                let statements+= ['']
-            endif
+                if domain !=# last_domain
+                    let statements+= ['']
+                endif
 
-            let statements+= [printf('import %s;', class)]
+                let statements+= [printf('import %s;', class)]
 
-            let last_domain= domain
-        endfor
+                let last_domain= domain
+            endfor
+        endif
 
         if !empty(fields_and_methods)
-            let statements+= ['']
+            if !empty(classes)
+                let statements+= ['']
+            endif
 
             let last_domain= split(fields_and_methods[0], '\.')[0]
             for field_or_method in fields_and_methods

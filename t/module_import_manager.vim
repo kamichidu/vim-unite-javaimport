@@ -94,6 +94,26 @@ function! s:suite.__adds_statements__()
         \   '}',
         \])
     endfunction
+
+    function! adds_statements.at_first_for_static()
+        call s:paste('t/fixtures/NoImports.java')
+
+        call g:manager.add({
+        \   'class': 'java.util.Arrays',
+        \   'method': 'asList',
+        \})
+
+        call s:assert.equals(g:manager.imported_fields_and_methods(), ['java.util.Arrays.asList'])
+        call s:assert.equals(getline(1, '$'), [
+        \   'package hoge;',
+        \   '',
+        \   'import static java.util.Arrays.asList;',
+        \   '',
+        \   'class NoImports',
+        \   '{',
+        \   '}',
+        \])
+    endfunction
 endfunction
 
 function! s:suite.__removes_statements__()
