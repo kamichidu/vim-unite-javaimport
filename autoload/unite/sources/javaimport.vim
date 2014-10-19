@@ -569,7 +569,8 @@ function! s:trans_class_candidate(classes)
     return map(copy(a:classes), "{
     \   'word': v:val.canonical_name,
     \   'kind': 'javaimport/class',
-    \   'action__class': v:val,
+    \   'action__package': v:val.package,
+    \   'action__class': v:val.canonical_name,
     \}")
 endfunction
 
@@ -578,8 +579,9 @@ function! s:trans_field_candidate(class, fields)
     \   'word': v:val.name,
     \   'kind': 'javaimport/field',
     \   'abbr': printf('%s %s - %s ... %s', s:scope_symbol(v:val.modifiers), v:val.name, v:val.type, a:class.canonical_name),
-    \   'action__class': a:class,
-    \   'action__field': v:val,
+    \   'action__package': a:class.package,
+    \   'action__class': a:class.canonical_name,
+    \   'action__field': v:val.name,
     \}")
 endfunction
 
@@ -588,8 +590,9 @@ function! s:trans_method_candidate(class, methods)
     \   'word': a:class.canonical_name . '.' . v:val.name,
     \   'kind': 'javaimport/method',
     \   'abbr': printf('%s %s(%s) : %s ... %s', s:scope_symbol(v:val.modifiers), v:val.name, join(map(copy(v:val.parameters), 'v:val.type'), ', '), v:val.return_type, a:class.canonical_name),
-    \   'action__class': a:class,
-    \   'action__method': v:val,
+    \   'action__package': a:class.package,
+    \   'action__class': a:class.canonical_name,
+    \   'action__method': v:val.name,
     \}")
 endfunction
 

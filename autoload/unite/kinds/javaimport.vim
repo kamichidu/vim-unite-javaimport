@@ -57,7 +57,7 @@ let s:class.action_table.import= {
 \}
 function! s:class.action_table.import.func(candidates)
     call javaimport#import(map(copy(a:candidates), "{
-    \   'class': v:val.action__class.canonical_name,
+    \   'class': v:val.action__class,
     \}"))
 endfunction
 
@@ -69,7 +69,10 @@ let s:class.action_table.expand= {
 function! s:class.action_table.expand.func(candidate)
     call unite#start_script(
     \   [['javaimport/field'], ['javaimport/method']],
-    \   {'custom_javaimport_package': a:candidate.action__class.package, 'custom_javaimport_class': a:candidate.action__class.simple_name}
+    \   {
+    \       'custom_javaimport_package': a:candidate.action__package,
+    \       'custom_javaimport_class': split(a:candidate.action__class, '\.')[-1],
+    \   }
     \)
 endfunction
 
@@ -101,8 +104,8 @@ let s:field.action_table.import= {
 \}
 function! s:field.action_table.import.func(candidates)
     call javaimport#import(map(copy(a:candidates), "{
-    \   'class': v:val.action__class.canonical_name,
-    \   'field': v:val.action__field.name,
+    \   'class': v:val.action__class,
+    \   'field': v:val.action__field,
     \}"))
 endfunction
 
@@ -122,8 +125,8 @@ let s:method.action_table.import= {
 \}
 function! s:method.action_table.import.func(candidates)
     call javaimport#import(map(copy(a:candidates), "{
-    \   'class': v:val.action__class.canonical_name,
-    \   'method': v:val.action__method.name,
+    \   'class': v:val.action__class,
+    \   'method': v:val.action__method,
     \}"))
 endfunction
 
