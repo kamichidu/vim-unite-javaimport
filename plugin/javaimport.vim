@@ -56,10 +56,9 @@ command! JavaImportClearCache call javaimport#clear_cache()
 command! JavaImportSortStatements call javaimport#sort_import_statements()
 command! JavaImportRemoveUnnecessaries call javaimport#remove_unnecesarries()
 
-command! CtrlPJavaImportPackage call ctrlp#init(ctrlp#javaimport#package#id())
 command! CtrlPJavaImportClass call ctrlp#init(ctrlp#javaimport#class#id())
 command! CtrlPJavaImportField call ctrlp#init(ctrlp#javaimport#field#id())
-" command! CtrlPJavaImportMethod call ctrlp#init(ctrlp#javaimport#method#id())
+command! CtrlPJavaImportMethod call ctrlp#init(ctrlp#javaimport#method#id())
 
 nmap <silent><Plug>(javaimport-quickimport) :<C-U>call javaimport#quickimport(expand('<cword>'))<CR>
 

@@ -27,13 +27,6 @@ let s:L= javaimport#vital('Data.List')
 let s:J= javaimport#vital('Web.JSON')
 let s:M= javaimport#vital('Vim.Message')
 
-" autoload/unite/sources/javaimport.vim
-let s:plugin_dir= expand('<sfile>:h:h:h:h') . '/'
-let s:javaimport_classpath= s:plugin_dir . 'bin/javaimport-0.2.4.jar'
-let s:config_classpath= s:plugin_dir . 'config/'
-
-let s:jlang= javalang#get()
-
 "
 " package source
 "
@@ -45,13 +38,12 @@ let s:packages= {
 \}
 
 function! s:packages.gather_candidates(args, context)
-    let data_dir= s:join_path(g:javaimport_config.cache_dir, 'data/')
     let configs= javaimport#import_config()
     let jar_configs= filter(copy(configs), 'v:val.type ==# "jar"')
 
-    call s:analyze_fast(data_dir, map(copy(jar_configs), 'v:val.path'))
+    call javaimport#start_analysis_fast(map(copy(jar_configs), 'v:val.path'))
 
-    let [orig_paths, data_paths]= s:trans_data_path(data_dir, map(copy(jar_configs), 'v:val.path'))
+    let [orig_paths, data_paths]= javaimport#trans_data_path(map(copy(jar_configs), 'v:val.path'))
 
     if empty(data_paths)
         let a:context.is_async= 0
@@ -63,7 +55,7 @@ function! s:packages.gather_candidates(args, context)
     let a:context.source__paths= []
     let a:context.source__filter= filter
     for path in s:L.zip(orig_paths, data_paths)
-        let [ok, packages]= s:read_packages(path[1])
+        let [ok, packages]= javaimport#read_packages(path[1])
 
         if ok
             let candidates+= s:trans_package_candidate(filter.apply(packages))
@@ -81,7 +73,7 @@ function! s:packages.async_gather_candidates(args, context)
     let filter= a:context.source__filter
     let a:context.source__paths= []
     for path in paths
-        let [ok, packages]= s:read_packages(path[1])
+        let [ok, packages]= javaimport#read_packages(path[1])
 
         if ok
             let candidates+= s:trans_package_candidate(filter.apply(packages))
@@ -108,7 +100,6 @@ let s:classes= {
 "   custom_javaimport_package - package name (constant match)
 "   custom_javaimport_class   - class name (constant match)
 function! s:classes.gather_candidates(args, context)
-    let data_dir= s:join_path(g:javaimport_config.cache_dir, 'data/')
     let configs= javaimport#import_config()
     let directory_configs= filter(copy(configs), 'v:val.type ==# "directory"')
     let jar_configs= filter(copy(configs), 'v:val.type ==# "jar"')
@@ -118,9 +109,9 @@ function! s:classes.gather_candidates(args, context)
         call s:M.warn("gathering classes from javadoc path (url) is deprecated, ignore it.")
     endif
 
-    call s:analyze_fast(data_dir, map(copy(jar_configs), 'v:val.path'))
+    call javaimport#start_analysis_fast(map(copy(jar_configs), 'v:val.path'))
 
-    let [orig_paths, data_paths]= s:trans_data_path(data_dir, map(copy(jar_configs), 'v:val.path'))
+    let [orig_paths, data_paths]= javaimport#trans_data_path(map(copy(jar_configs), 'v:val.path'))
 
     if empty(data_paths)
         let a:context.is_async= 0
@@ -133,7 +124,7 @@ function! s:classes.gather_candidates(args, context)
     let a:context.source__package_filter= package_filter
     let packages= []
     for path in s:L.zip(orig_paths, data_paths)
-        let [ok, names]= s:read_packages(path[1])
+        let [ok, names]= javaimport#read_packages(path[1])
 
         if ok
             let packages+= map(copy(package_filter.apply(names)), '[path, v:val]')
@@ -148,7 +139,7 @@ function! s:classes.gather_candidates(args, context)
     let a:context.source__class_filter= class_filter
     for package in packages
         let [path, name]= package
-        let [ok, classes]= s:read_classes(path[1], name)
+        let [ok, classes]= javaimport#read_classes(path[1], name)
 
         if ok
             call filter(classes, 's:L.has(v:val.modifiers, "public") || s:L.has(v:val.modifiers, "protected")')
@@ -168,7 +159,7 @@ function! s:classes.async_gather_candidates(args, context)
     let a:context.source__paths= []
     let packages= []
     for path in paths
-        let [ok, names]= s:read_packages(path[1])
+        let [ok, names]= javaimport#read_packages(path[1])
 
         if ok
             let packages+= map(copy(package_filter.apply(names)), '[path, v:val]')
@@ -183,7 +174,7 @@ function! s:classes.async_gather_candidates(args, context)
     let a:context.source__packages= []
     for package in packages
         let [path, name]= package
-        let [ok, classes]= s:read_classes(path[1], name)
+        let [ok, classes]= javaimport#read_classes(path[1], name)
 
         if ok
             call filter(classes, 's:L.has(v:val.modifiers, "public") || s:L.has(v:val.modifiers, "protected")')
@@ -208,13 +199,12 @@ let s:fields= {
 \}
 
 function! s:fields.gather_candidates(args, context)
-    let data_dir= s:join_path(g:javaimport_config.cache_dir, 'data/')
     let configs= javaimport#import_config()
     let jar_configs= filter(copy(configs), 'v:val.type ==# "jar"')
 
-    call s:analyze_fast(data_dir, map(copy(jar_configs), 'v:val.path'))
+    call javaimport#start_analysis_fast(map(copy(jar_configs), 'v:val.path'))
 
-    let [orig_paths, data_paths]= s:trans_data_path(data_dir, map(copy(jar_configs), 'v:val.path'))
+    let [orig_paths, data_paths]= javaimport#trans_data_path(map(copy(jar_configs), 'v:val.path'))
 
     if empty(data_paths)
         let a:context.is_async= 0
@@ -226,7 +216,7 @@ function! s:fields.gather_candidates(args, context)
     let a:context.source__package_filter= package_filter
     let packages= []
     for path in s:L.zip(orig_paths, data_paths)
-        let [ok, names]= s:read_packages(path[1])
+        let [ok, names]= javaimport#read_packages(path[1])
 
         if ok
             let packages+= map(copy(package_filter.apply(names)), '[path, v:val]')
@@ -241,7 +231,7 @@ function! s:fields.gather_candidates(args, context)
     let a:context.source__class_filter= class_filter
     for package in packages
         let [path, name]= package
-        let [ok, classes]= s:read_classes(path[1], name)
+        let [ok, classes]= javaimport#read_classes(path[1], name)
 
         if ok
             " public, protected, package private class are permitted
@@ -274,7 +264,7 @@ function! s:fields.async_gather_candidates(args, context)
     let a:context.source__paths= []
     let packages= []
     for path in paths
-        let [ok, names]= s:read_packages(path[1])
+        let [ok, names]= javaimport#read_packages(path[1])
 
         if ok
             let packages+= map(copy(package_filter.apply(names)), '[path, v:val]')
@@ -289,7 +279,7 @@ function! s:fields.async_gather_candidates(args, context)
     let a:context.source__packages= []
     for package in packages
         let [path, name]= package
-        let [ok, classes]= s:read_classes(path[1], name)
+        let [ok, classes]= javaimport#read_classes(path[1], name)
 
         if ok
             " public, protected, package private class are permitted
@@ -327,13 +317,12 @@ let s:methods= {
 \}
 
 function! s:methods.gather_candidates(args, context)
-    let data_dir= s:join_path(g:javaimport_config.cache_dir, 'data/')
     let configs= javaimport#import_config()
     let jar_configs= filter(copy(configs), 'v:val.type ==# "jar"')
 
-    call s:analyze_fast(data_dir, map(copy(jar_configs), 'v:val.path'))
+    call javaimport#start_analysis_fast(map(copy(jar_configs), 'v:val.path'))
 
-    let [orig_paths, data_paths]= s:trans_data_path(data_dir, map(copy(jar_configs), 'v:val.path'))
+    let [orig_paths, data_paths]= javaimport#trans_data_path(map(copy(jar_configs), 'v:val.path'))
 
     if empty(data_paths)
         let a:context.is_async= 0
@@ -345,7 +334,7 @@ function! s:methods.gather_candidates(args, context)
     let a:context.source__package_filter= package_filter
     let packages= []
     for path in s:L.zip(orig_paths, data_paths)
-        let [ok, names]= s:read_packages(path[1])
+        let [ok, names]= javaimport#read_packages(path[1])
 
         if ok
             let packages+= map(copy(package_filter.apply(names)), '[path, v:val]')
@@ -360,7 +349,7 @@ function! s:methods.gather_candidates(args, context)
     let a:context.source__class_filter= class_filter
     for package in packages
         let [path, name]= package
-        let [ok, classes]= s:read_classes(path[1], name)
+        let [ok, classes]= javaimport#read_classes(path[1], name)
 
         if ok
             " public, protected, package private class are permitted
@@ -393,7 +382,7 @@ function! s:methods.async_gather_candidates(args, context)
     let a:context.source__paths= []
     let packages= []
     for path in paths
-        let [ok, names]= s:read_packages(path[1])
+        let [ok, names]= javaimport#read_packages(path[1])
 
         if ok
             let packages+= map(copy(package_filter.apply(names)), '[path, v:val]')
@@ -408,7 +397,7 @@ function! s:methods.async_gather_candidates(args, context)
     let a:context.source__packages= []
     for package in packages
         let [path, name]= package
-        let [ok, classes]= s:read_classes(path[1], name)
+        let [ok, classes]= javaimport#read_classes(path[1], name)
 
         if ok
             " public, protected, package private class are permitted
@@ -435,124 +424,24 @@ function! s:methods.async_gather_candidates(args, context)
     return candidates
 endfunction
 
-function! s:analyze_fast(data_dir, paths)
-    " filter jarfle if already exist
-    let [orig_paths, data_paths]= s:trans_data_path(a:data_dir, a:paths)
-
-    let jars= []
-    for path in s:L.zip(orig_paths, data_paths)
-        if !isdirectory(path[1])
-            let jars+= [path[0]]
-        endif
-    endfor
-
-    call s:analyze(a:data_dir, jars)
-endfunction
-
-function! s:analyze(data_dir, paths)
-    if empty(a:paths)
-        " do nothing
-        return
-    endif
-
-    let jvm= g:javaimport_config.jvm
-    let jvmargs= g:javaimport_config.jvmargs
-
-    if !executable(jvm)
-        throw printf("javaimport: Cannot execute g:javaimport_config.jvm `%s'", jvm)
-    endif
-
-    call s:P.spawn(join([
-    \   jvm,
-    \   jvmargs,
-    \   '-cp', join([s:config_classpath, s:javaimport_classpath], s:jlang.constants.path_separator),
-    \   'jp.michikusa.chitose.javaimport.cli.App',
-    \   '--outputdir', a:data_dir,
-    \   join(a:paths),
-    \]))
-endfunction
-
-" => [[], []]
-function! s:trans_data_path(data_dir, paths)
-    let orig_paths= []
-    let data_paths= []
-
-    for path in a:paths
-        if isdirectory(path)
-            " it's a directory
-            let orig_paths+= [path]
-            let data_paths+= [s:join_path(a:data_dir, s:escape(path))]
-        elseif filereadable(path) && path =~# '\c\.\%(jar\|zip\)$'
-            " it's a jar file or zip file
-            let orig_paths+= [path]
-            let data_paths+= [s:join_path(a:data_dir, fnamemodify(path, ':t'))]
-        endif
-    endfor
-
-    return [orig_paths, data_paths]
-endfunction
-
 function! s:new_package_filter(context)
-    let filter= javaimport#filter#package#new()
+    let filter= javaimport#new_package_filter()
 
     if has_key(a:context, 'custom_javaimport_package')
         call filter.contains(a:context.custom_javaimport_package)
     endif
-    for exclusion in get(g:javaimport_config, 'exclude_packages', [])
-        call filter.exclude(exclusion)
-    endfor
 
     return filter
 endfunction
 
 function! s:new_class_filter(context)
-    let filter= javaimport#filter#class#new()
+    let filter= javaimport#new_class_filter()
 
     if has_key(a:context, 'custom_javaimport_class')
         call filter.classname(a:context.custom_javaimport_class)
     endif
 
     return filter
-endfunction
-
-function! s:escape(name)
-    return substitute(a:name, '[:;*?"<>|/\\%]', '_', 'g')
-endfunction
-
-function! s:join_path(parent, filename)
-    return substitute(a:parent, '/\+$', '', '') . '/' . a:filename
-endfunction
-
-" [1/0, []]
-function! s:read_packages(data_path)
-    if filereadable(s:join_path(a:data_path, 'packages'))
-        let content= readfile(s:join_path(a:data_path, 'packages'))
-        return [1, s:J.decode(join(content, ''))]
-    else
-        return [0, []]
-    endif
-endfunction
-
-" [1/0, []]
-function! s:read_classes(data_path, package)
-    if filereadable(s:join_path(a:data_path, a:package))
-        let content= readfile(s:join_path(a:data_path, a:package))
-        return [1, s:J.decode(join(content, ''))]
-    else
-        return [0, []]
-    endif
-endfunction
-
-function! s:scope_symbol(modifiers)
-    if s:L.has(a:modifiers, 'public')
-        return '+'
-    elseif s:L.has(a:modifiers, 'protected')
-        return '#'
-    elseif s:L.has(a:modifiers, 'private')
-        return '-'
-    else
-        return ' '
-    endif
 endfunction
 
 function! s:trans_package_candidate(packages)
@@ -576,7 +465,7 @@ function! s:trans_field_candidate(class, fields)
     return map(copy(a:fields), "{
     \   'word': v:val.name,
     \   'kind': 'javaimport/field',
-    \   'abbr': printf('%s %s - %s ... %s', s:scope_symbol(v:val.modifiers), v:val.name, v:val.type, a:class.canonical_name),
+    \   'abbr': printf('%s %s - %s ... %s', javaimport#scope_symbol(v:val.modifiers), v:val.name, v:val.type, a:class.canonical_name),
     \   'action__package': a:class.package,
     \   'action__class': a:class.canonical_name,
     \   'action__field': v:val.name,
@@ -587,7 +476,7 @@ function! s:trans_method_candidate(class, methods)
     return map(copy(a:methods), "{
     \   'word': a:class.canonical_name . '.' . v:val.name,
     \   'kind': 'javaimport/method',
-    \   'abbr': printf('%s %s(%s) : %s ... %s', s:scope_symbol(v:val.modifiers), v:val.name, join(map(copy(v:val.parameters), 'v:val.type'), ', '), v:val.return_type, a:class.canonical_name),
+    \   'abbr': printf('%s %s(%s) : %s ... %s', javaimport#scope_symbol(v:val.modifiers), v:val.name, join(map(copy(v:val.parameters), 'v:val.type'), ', '), v:val.return_type, a:class.canonical_name),
     \   'action__package': a:class.package,
     \   'action__class': a:class.canonical_name,
     \   'action__method': v:val.name,

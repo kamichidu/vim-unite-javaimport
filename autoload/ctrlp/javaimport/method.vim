@@ -24,7 +24,7 @@ let s:L= javaimport#vital('Data.List')
 let s:J= javaimport#vital('Web.JSON')
 let s:M= javaimport#vital('Vim.Message')
 
-function! ctrlp#javaimport#field#init()
+function! ctrlp#javaimport#method#init()
     let configs= javaimport#import_config()
     let jar_configs= filter(copy(configs), 'v:val.type ==# "jar"')
 
@@ -37,8 +37,8 @@ function! ctrlp#javaimport#field#init()
     endif
 
     let package_filter= javaimport#new_package_filter()
-    let packages= []
     let paths= s:L.zip(orig_paths, data_paths)
+    let packages= []
     while !empty(paths)
         let path= s:L.shift(paths)
         let [ok, names]= javaimport#read_packages(path[1])
@@ -66,14 +66,14 @@ function! ctrlp#javaimport#field#init()
             \')
 
             for class in class_filter.apply(classes)
-                let fields= filter(class.fields, '
+                let methods= filter(class.methods, '
                 \   s:L.has(v:val.modifiers, "static") && (
                 \       s:L.has(v:val.modifiers, "public") ||
                 \       s:L.has(v:val.modifiers, "protected") ||
                 \       !s:L.has(v:val.modifiers, "private")
                 \   )
                 \')
-                let candidates+= map(copy(fields), "class.canonical_name . '.' . v:val.name . \"\t\" . s:info(v:val)")
+                let candidates+= map(methods, "class.canonical_name . '.' . v:val.name . \"\t\" . s:info(v:val)")
             endfor
         else
             call s:L.push(packages, package)
@@ -82,38 +82,38 @@ function! ctrlp#javaimport#field#init()
     return candidates
 endfunction
 
-function! s:info(field)
+function! s:info(method)
     let info= []
-    if s:L.has(a:field.modifiers, 'public')
+    if s:L.has(a:method.modifiers, 'public')
         let info+= ['public']
-    elseif s:L.has(a:field.modifiers, 'protected')
+    elseif s:L.has(a:method.modifiers, 'protected')
         let info+= ['protected']
-    elseif s:L.has(a:field.modifiers, 'private')
+    elseif s:L.has(a:method.modifiers, 'private')
         let info+= ['private']
     endif
-    let info+= [a:field.type]
+    let info+= [printf('%s(%s)', a:method.return_type, join(map(copy(a:method.parameters), 'string(v:val)')))]
     return join(info)
 endfunction
 
-function! ctrlp#javaimport#field#accept(mode, str)
-  call ctrlp#exit()
+function! ctrlp#javaimport#method#accept(mode, str)
+    call ctrlp#exit()
 
-  let str= strpart(a:str, 0, stridx(a:str, "\t"))
-  let class= join(split(str, '\.')[ : -2], '.')
-  let field= split(str, '\.')[-1]
-  call javaimport#import({'class': class, 'field': field})
+    let str= strpart(a:str, 0, stridx(a:str, "\t"))
+    let class= join(split(str, '\.')[ : -2], '.')
+    let method= split(str, '\.')[-1]
+    call javaimport#import({'class': class, 'method': method})
 endfunction
 
 let g:ctrlp_ext_vars= get(g:, 'ctrlp_ext_vars', []) + [{
-\   'init':   'ctrlp#javaimport#field#init()',
-\   'accept': 'ctrlp#javaimport#field#accept',
-\   'lname':  'javaimport/field',
-\   'sname':  'javaimport/field',
+\   'init':   'ctrlp#javaimport#method#init()',
+\   'accept': 'ctrlp#javaimport#method#accept',
+\   'lname':  'javaimport/method',
+\   'sname':  'javaimport/method',
 \   'type':   'tabs',
 \   'sort':   1,
 \}]
 
 let s:id= g:ctrlp_builtins + len(g:ctrlp_ext_vars)
-function! ctrlp#javaimport#field#id()
+function! ctrlp#javaimport#method#id()
     return s:id
 endfunction

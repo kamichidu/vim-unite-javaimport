@@ -30,7 +30,13 @@ let s:M= s:V.import('Vim.Message')
 let s:F= s:V.import('System.File')
 unlet s:V
 
+" autoload/javaimport.vim
+let s:plugin_dir= expand('<sfile>:h:h') . '/'
+let s:javaimport_classpath= s:plugin_dir . 'bin/javaimport-0.2.4.jar'
+let s:config_classpath= s:plugin_dir . 'config/'
+
 let s:jclasspath= javaclasspath#get()
+let s:jlang= javalang#get()
 
 let s:vital= {
 \   'Process': s:P,
@@ -80,7 +86,7 @@ function! s:parse_javaimport()
     " ignore comment lines
     call filter(l:lines, 'v:val !~# ''^\s*#''')
 
-    let l:sources= s:JSON.decode('[' . join(l:lines, "\n") . ']')
+    let l:sources= s:J.decode('[' . join(l:lines, "\n") . ']')
     let l:result= []
 
     for l:source in l:sources
@@ -237,6 +243,140 @@ endfunction
 ""
 function! javaimport#imported_classes()
     return s:import_manager().imported_classes()
+endfunction
+
+function! javaimport#data_dir()
+    return javaimport#join_path(g:javaimport_config.cache_dir, 'data/')
+endfunction
+
+"
+" paths: jar filename or directory name
+"
+function! javaimport#trans_data_path(paths)
+    let data_dir= javaimport#data_dir()
+
+    let orig_paths= []
+    let data_paths= []
+
+    for path in a:paths
+        if isdirectory(path)
+            " it's a directory
+            let orig_paths+= [path]
+            let data_paths+= [javaimport#join_path(data_dir, javaimport#fnameescape(path))]
+        elseif filereadable(path) && path =~# '\c\.\%(jar\|zip\)$'
+            " it's a jar file or zip file
+            let orig_paths+= [path]
+            let data_paths+= [javaimport#join_path(data_dir, fnamemodify(path, ':t'))]
+        endif
+    endfor
+
+    return [orig_paths, data_paths]
+endfunction
+
+function! javaimport#join_path(parent, filename)
+    return substitute(a:parent, '/\+$', '', '') . '/' . a:filename
+endfunction
+
+function! javaimport#fnameescape(name)
+    return substitute(a:name, '[:;*?"<>|/\\%]', '_', 'g')
+endfunction
+
+" [1/0, []]
+function! javaimport#read_packages(data_path)
+    let filename= javaimport#join_path(a:data_path, 'packages')
+
+    if filereadable(filename)
+        try
+            let content= readfile(filename)
+            let data= s:J.decode(join(content, ''))
+
+            return [1, data]
+        catch
+            return [0, []]
+        endtry
+    else
+        return [0, []]
+    endif
+endfunction
+
+" [1/0, []]
+function! javaimport#read_classes(data_path, package)
+    let filename= javaimport#join_path(a:data_path, a:package)
+
+    if filereadable(filename)
+        try
+            let content= readfile(filename)
+            let data= s:J.decode(join(content, ''))
+            return [1, data]
+        catch
+            return [0, []]
+        endtry
+    else
+        return [0, []]
+    endif
+endfunction
+
+function! javaimport#start_analysis_fast(paths)
+    " filter jarfle if already exist
+    let [orig_paths, data_paths]= javaimport#trans_data_path(a:paths)
+
+    let jars= []
+    for path in s:L.zip(orig_paths, data_paths)
+        if !isdirectory(path[1])
+            let jars+= [path[0]]
+        endif
+    endfor
+
+    call javaimport#start_analysis(jars)
+endfunction
+
+function! javaimport#start_analysis(paths)
+    if empty(a:paths)
+        " do nothing
+        return
+    endif
+
+    let jvm= g:javaimport_config.jvm
+    let jvmargs= g:javaimport_config.jvmargs
+
+    if !executable(jvm)
+        throw printf("javaimport: Cannot execute g:javaimport_config.jvm `%s'", jvm)
+    endif
+
+    call s:P.spawn(join([
+    \   jvm,
+    \   jvmargs,
+    \   '-cp', join([s:config_classpath, s:javaimport_classpath], s:jlang.constants.path_separator),
+    \   'jp.michikusa.chitose.javaimport.cli.App',
+    \   '--outputdir', javaimport#data_dir(),
+    \   join(a:paths),
+    \]))
+endfunction
+
+function! javaimport#scope_symbol(modifiers)
+    if s:L.has(a:modifiers, 'public')
+        return '+'
+    elseif s:L.has(a:modifiers, 'protected')
+        return '#'
+    elseif s:L.has(a:modifiers, 'private')
+        return '-'
+    else
+        return ' '
+    endif
+endfunction
+
+function! javaimport#new_package_filter(...)
+    let filter= javaimport#filter#package#new()
+
+    for exclusion in get(g:javaimport_config, 'exclude_packages', [])
+        call filter.exclude(exclusion)
+    endfor
+
+    return filter
+endfunction
+
+function! javaimport#new_class_filter(...)
+    return javaimport#filter#class#new()
 endfunction
 
 function! s:is_symbol_used(symbol)
