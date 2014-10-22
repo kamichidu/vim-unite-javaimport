@@ -343,14 +343,21 @@ function! javaimport#start_analysis(paths)
         throw printf("javaimport: Cannot execute g:javaimport_config.jvm `%s'", jvm)
     endif
 
-    call s:P.spawn(join([
-    \   jvm,
-    \   jvmargs,
-    \   '-cp', join([s:config_classpath, s:javaimport_classpath], s:jlang.constants.path_separator),
-    \   'jp.michikusa.chitose.javaimport.cli.App',
-    \   '--outputdir', javaimport#data_dir(),
-    \   join(a:paths),
-    \]))
+    let save_cwd= getcwd()
+    try
+        execute 'lcd' s:plugin_dir
+
+        call s:P.spawn(join([
+        \   jvm,
+        \   jvmargs,
+        \   '-cp', join([s:config_classpath, s:javaimport_classpath], s:jlang.constants.path_separator),
+        \   'jp.michikusa.chitose.javaimport.cli.App',
+        \   '--outputdir', javaimport#data_dir(),
+        \   join(a:paths),
+        \]))
+    finally
+        execute 'lcd' save_cwd
+    endtry
 endfunction
 
 function! javaimport#scope_symbol(modifiers)
