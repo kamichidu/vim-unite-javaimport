@@ -2,7 +2,7 @@
 
 Version: 0.30
 Author:  kamichidu <c.kamunagi@gmail.com>
-Last Change: 13-Oct-2014.
+Last Change: 23-Oct-2014.
 License: The MIT License (MIT)
 
 Copyright (c) 2013-2014 kamichidu
@@ -95,6 +95,31 @@ javaimport/class
 >
 	:Unite javaimport/class
 <
+
+					       *unite-javaimport-source-field*
+javaimport/field
+	Gather all importable fields, and insert static import statements by
+	candidates you selected. It's okay to select multiple candidates. This
+	source can takes arguments below:
+
+	-custom-javaimport-package={package}
+	-custom-javaimport-class={class}
+>
+	:Unite javaimport/field
+<
+
+					      *unite-javaimport-source-method*
+javaimport/method
+	Gather all importable methods, and insert static import statements by
+	candidates you selected. It's okay to select multiple candidates. This
+	source can takes arguments below:
+
+	-custom-javaimport-package={package}
+	-custom-javaimport-class={class}
+>
+	:Unite javaimport/method
+<
+
 ------------------------------------------------------------------------------
 COMMANDS					   *unite-javaimport-commands*
 
@@ -133,15 +158,36 @@ g:javaimport_config
 	It is a |Dictionary| to control |unite-javaimport| behaviour. It can
 	have attributes below:
 
-	cache_dir	(Optional, |String|)
-			(Default: '$HOME/.javaimport/')
+	cache_dir
+		(Optional, |String|)
+		(Default: '$HOME/.javaimport/')
 		Relative or absolute path for caching.
 
-	preview_using	(Optional, |String|)
-			(Default: 'w3m')
+	preview_using
+		(Optional, |String|)
+		(Default: 'w3m')
 		One of "w3m" and "lynx". When "w3m" is set, |w3m.vim| must be
 		installed. When "lynx" is set, it doesn't work (not
 		implemented yet).
+
+	exclude_packages
+		(Optional, |List|)
+		(Default: ["com.oracle", "com.sun", "sun", "sunw"])
+		Specify packages you don't want to import. These packages
+		won't be available.
+
+	jvm
+		(Optional, |String|)
+		(Default, MS-Windows:       $JAVA_HOME/bin/javaw)
+		(Default, Others Platforms: $JAVA_HOME/bin/javaw)
+		The executable java command filename. It will be used for
+		launching java application.
+
+	jvmargs
+		(Optional: |String|)
+		(Default: "")
+		The java virtual machine argument(s).
+		e.g. "-Xms256m -Xmx256m"
 
 ==============================================================================
 HOW TO USE					   *unite-javaimport-howtouse*
