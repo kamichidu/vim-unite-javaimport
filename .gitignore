@@ -2,5 +2,6 @@ javaimport/target/
 .bundle/
 .vim-flavor/
 .vim-test/
+.vim-lint/
 *.lock
 logs/

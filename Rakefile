@@ -17,3 +17,14 @@ fi
 ...
     sh './.vim-test/themis/bin/themis --runtimepath .vim-test/javalang/ --runtimepath .vim-test/javaclasspath/'
 end
+
+task :lint do
+    sh <<'...'
+if ! [ -d .vim-lint/ ]; then
+    mkdir .vim-lint/
+    git clone https://github.com/syngan/vim-vimlint .vim-lint/vimlint/
+    git clone https://github.com/ynkdir/vim-vimlparser .vim-lint/vimlparser/
+fi
+...
+    sh './.vim-lint/vimlint/bin/vimlint.sh -l ./.vim-lint/vimlint/ -p ./.vim-lint/vimlparser -e EVL103=1 -e EVL102.l:_=1 autoload/'
+end
