@@ -24,35 +24,27 @@ set cpo&vim
 
 let s:filter= javaimport#filter#package#new()
 
-if has('patch-7.3.1170')
-    function! s:filter.classname(name)
-        let self.__regexes+= [{
-        \   'name': a:name,
-        \   'apply': function('s:match_for_simple_name'),
-        \}]
-    endfunction
-else
-    let s:regex= {}
+let s:filter.__package_expr= 'v:val.package'
+let s:filter.__simple_name_expr= 'v:val.simple_name'
+let s:filter.__classname= []
 
-    function! s:regex.apply(value)
-        return call('s:match_for_simple_name', [a:value], self)
-    endfunction
+function! s:filter.classname(name)
+    let self.__classname+= [a:name]
+endfunction
 
-    function! s:filter.classname(name)
-        let regex= deepcopy(s:regex)
+let s:_make_expr= s:filter._make_expr
+function! s:filter._make_expr()
+    let expr= call(s:_make_expr, [], self)
 
-        let regex.name= a:name
+    if !empty(self.__classname)
+        let expr+= [printf("%s =~# '%s'", self.__simple_name_expr, '\C^\%(' . join(map(copy(self.__classname), 'escape(v:val, ".")'), '\|') . '\)$')]
+    endif
 
-        let self.__regexes+= [regex]
-    endfunction
-endif
+    return expr
+endfunction
 
 function! javaimport#filter#class#new()
     return deepcopy(s:filter)
-endfunction
-
-function! s:match_for_simple_name(value) dict
-    return a:value.simple_name ==# self.name
 endfunction
 
 let &cpo= s:save_cpo

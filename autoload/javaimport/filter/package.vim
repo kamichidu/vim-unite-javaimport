@@ -22,91 +22,55 @@
 let s:save_cpo= &cpo
 set cpo&vim
 
-let s:filter= javaimport#filter#base#new()
+let s:filter= {
+\   '__package_expr': 'v:val',
+\   '__contains': [],
+\   '__exclude': [],
+\   '__exclude_exactly': [],
+\}
 
-if has('patch-7.3.1170')
-    " name: 'java.util' or 'util', ...
-    function! s:filter.contains(name)
-        let self.__regexes+= [{
-        \   'name': a:name,
-        \   'apply': function('s:match_by_stridx'),
-        \}]
-    endfunction
+function! s:filter.apply(packages)
+    let expr= self._make_expr()
 
-    " name: 'java.util' or ...
-    function! s:filter.exclude(name)
-        let self.__regexes+= [{
-        \   'name': escape(a:name, '.\'),
-        \   'apply': function('s:match_prefix'),
-        \}]
-    endfunction
+    if empty(expr)
+        return copy(a:packages)
+    endif
 
-    function! s:filter.exclude_exactly(name)
-        let self.__regexes+= [{
-        \   'name': a:name,
-        \   'apply': function('s:match_exactly'),
-        \}]
-    endfunction
-else
-    let s:contains_regex= {}
+    return filter(copy(a:packages), join(expr, ' && '))
+endfunction
 
-    function! s:contains_regex.apply(value)
-        return call('s:match_by_stridx', [a:value], self)
-    endfunction
+" name: 'java.util' or 'util', ...
+function! s:filter.contains(name)
+    let self.__contains+= [a:name]
+endfunction
 
-    " name: 'java.util' or 'util', ...
-    function! s:filter.contains(name)
-        let regex= deepcopy(s:contains_regex)
+" name: 'java.util' or ...
+function! s:filter.exclude(name)
+    let self.__exclude+= [a:name]
+endfunction
 
-        let regex.name= a:name
+function! s:filter.exclude_exactly(name)
+    let self.__exclude_exactly+= [a:name]
+endfunction
 
-        let self.__regexes+= [regex]
-    endfunction
+function! s:filter._make_expr()
+    let expr= []
 
-    let s:exclude_regex= {}
+    if !empty(self.__contains)
+        let expr+= [printf("%s =~# '%s'", self.__package_expr, '\C\%(' . join(map(copy(self.__contains), 'escape(v:val, ".")'), '\|') . '\)')]
+    endif
+    if !empty(self.__exclude)
+        let expr+= [printf("%s !~# '%s'", self.__package_expr, '\C^' . join(map(copy(self.__exclude), 'escape(v:val, ".")'), '\|') . '\>')]
+    endif
+    if !empty(self.__exclude_exactly)
+        let expr+= [printf("%s !~# '%s'", self.__package_expr, '\C^' . join(map(copy(self.__exclude_exactly), 'escape(v:val, ".")'), '\|') . '$')]
+    endif
 
-    function! s:exclude_regex.apply(value)
-        return call('s:match_prefix', [a:value], self)
-    endfunction
-
-    " name: 'java.util' or ...
-    function! s:filter.exclude(name)
-        let regex= deepcopy(s:exclude_regex)
-
-        let regex.name= a:name
-
-        let self.__regexes+= [regex]
-    endfunction
-
-    let s:exclude_exactly_regex= {}
-
-    function! s:exclude_exactly_regex.apply(value)
-        return call('s:match_exactly', [a:value], self)
-    endfunction
-
-    function! s:filter.exclude_exactly(name)
-        let regex= deepcopy(s:exclude_exactly_regex)
-
-        let regex.name= a:name
-
-        let self.__regexes+= [regex]
-    endfunction
-endif
+    return expr
+endfunction
 
 function! javaimport#filter#package#new()
     return deepcopy(s:filter)
-endfunction
-
-function! s:match_by_stridx(value) dict
-    return stridx(a:value, self.name) != -1
-endfunction
-
-function! s:match_prefix(value) dict
-    return a:value !~# '\C^' . self.name . '\>'
-endfunction
-
-function! s:match_exactly(value) dict
-    return a:value !=# self.name
 endfunction
 
 let &cpo= s:save_cpo
