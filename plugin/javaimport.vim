@@ -48,6 +48,11 @@ let g:javaimport_config.exclude_packages= get(g:javaimport_config, 'exclude_pack
 \   'com.sun',
 \   'sun',
 \   'sunw',
+\   'org.ietf',
+\   'org.jcp',
+\   'org.omg',
+\   'org.w3c',
+\   'org.xml',
 \])
 let g:javaimport_config.jvm= get(g:javaimport_config, 'jvm', s:default_jvm)
 let g:javaimport_config.jvmargs= get(g:javaimport_config, 'jvmargs', '')
