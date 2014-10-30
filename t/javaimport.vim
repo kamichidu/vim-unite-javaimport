@@ -199,3 +199,10 @@ function! s:suite.__RemoveUnnecessaries__()
         \])
     endfunction
 endfunction
+
+function! s:suite.get_current_package()
+    let b:javaclasspath_config= {'variable': {'paths': [{'kind': 'src', 'path': 'src/main/java'}]}}
+    file src/main/java/jp/michikusa/chitose/Dayo.java
+
+    call s:assert.same(javaimport#current_package(), 'jp.michikusa.chitose')
+endfunction

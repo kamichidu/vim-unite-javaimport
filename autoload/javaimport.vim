@@ -386,6 +386,22 @@ function! javaimport#new_class_filter(...)
     return javaimport#filter#class#new()
 endfunction
 
+function! javaimport#current_package()
+    let dirname= tr(expand('%:.:h'), '\', '/')
+    let sourcepaths= filter(copy(s:jclasspath.parse()), 'v:val.kind ==# "src"')
+    let sourcepaths= map(sourcepaths, 'fnamemodify(v:val.path, ":.")')
+
+    for sourcepath in sourcepaths
+        let path= tr(sourcepath, '\', '/')
+        let path= (path =~# '/$') ? path : path . '/'
+        if strpart(dirname, 0, strlen(path)) ==# path
+            return tr(strpart(dirname, strlen(path)), '/', '.')
+        endif
+    endfor
+
+    return tr(dirname, '/', '.')
+endfunction
+
 function! s:is_symbol_used(symbol)
     let save_pos= getpos('.')
     try
