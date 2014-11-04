@@ -347,7 +347,7 @@ function! javaimport#start_analysis(paths)
     try
         execute 'lcd' s:plugin_dir
 
-        call s:P.spawn(join([
+        call javaimport#util#spawn(join([
         \   jvm,
         \   jvmargs,
         \   '-cp', join([s:config_classpath, s:javaimport_classpath], s:jlang.constants.path_separator),
