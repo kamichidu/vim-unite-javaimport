@@ -2,7 +2,7 @@
 
 Version: 0.30
 Author:  kamichidu <c.kamunagi@gmail.com>
-Last Change: 23-Oct-2014.
+Last Change: 05-Nov-2014.
 License: The MIT License (MIT)
 
 Copyright (c) 2013-2014 kamichidu
@@ -52,9 +52,6 @@ Some other products are required to use |unite-javaimport|.
 		(Required)
 
 	* https://github.com/kamichidu/vim-javaclasspath
-		(Required)
-
-	* https://github.com/kamichidu/vim-javalang
 		(Required)
 
 	* Java Runtime Environment (JRE) 1.6 or above

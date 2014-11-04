@@ -28,6 +28,7 @@ let s:L= s:V.import('Data.List')
 let s:J= s:V.import('Web.JSON')
 let s:M= s:V.import('Vim.Message')
 let s:F= s:V.import('System.File')
+let s:JLang= s:V.import('Java.Lang')
 unlet s:V
 
 " autoload/javaimport.vim
@@ -36,7 +37,6 @@ let s:javaimport_classpath= s:plugin_dir . 'bin/javaimport-0.2.4.jar'
 let s:config_classpath= s:plugin_dir . 'config/'
 
 let s:jclasspath= javaclasspath#get()
-let s:jlang= javalang#get()
 
 let s:vital= {
 \   'Process': s:P,
@@ -350,7 +350,7 @@ function! javaimport#start_analysis(paths)
         call s:P.spawn(join([
         \   jvm,
         \   jvmargs,
-        \   '-cp', join([s:config_classpath, s:javaimport_classpath], s:jlang.constants.path_separator),
+        \   '-cp', join([s:config_classpath, s:javaimport_classpath], s:JLang.path_separator),
         \   'jp.michikusa.chitose.javaimport.cli.App',
         \   '--outputdir', javaimport#data_dir(),
         \   join(a:paths),

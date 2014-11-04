@@ -378,6 +378,54 @@ function! s:binary_search(list, value, ...)
   endwhile
 endfunction
 
+function! s:product(lists)
+  let result = [[]]
+  for pool in a:lists
+    let tmp = []
+    for x in result
+      let tmp += map(copy(pool), 'x + [v:val]')
+    endfor
+    let result = tmp
+  endfor
+  return result
+endfunction
+
+function! s:permutations(list, ...)
+  if a:0 > 1
+    throw 'vital: Data.List: too many arguments'
+  endif
+  let r = a:0 == 1 ? a:1 : len(a:list)
+  if r > len(a:list)
+    return []
+  elseif r < 0
+    throw 'vital: Data.List: {r} must be non-negative integer'
+  endif
+  let n = len(a:list)
+  let result = []
+  for indices in s:product(map(range(r), 'range(n)'))
+    if len(s:uniq(indices)) == r
+      call add(result, map(indices, 'a:list[v:val]'))
+    endif
+  endfor
+  return result
+endfunction
+
+function! s:combinations(list, r)
+  if a:r > len(a:list)
+    return []
+  elseif a:r < 0
+    throw 'vital: Data:List: {r} must be non-negative integer'
+  endif
+  let n = len(a:list)
+  let result = []
+  for indices in s:permutations(range(n), a:r)
+    if s:sort(copy(indices), 'a:a - a:b') == indices
+      call add(result, map(indices, 'a:list[v:val]'))
+    endif
+  endfor
+  return result
+endfunction
+
 let &cpo = s:save_cpo
 unlet s:save_cpo
 
