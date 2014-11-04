@@ -22,7 +22,13 @@
 let s:save_cpo= &cpo
 set cpo&vim
 
-let s:L= javaimport#vital('Data.List')
+function! s:_vital_loaded(V)
+    let s:L= a:V.import('Data.List')
+endfunction
+
+function! s:_vital_depends()
+    return ['Data.List']
+endfunction
 
 "
 " add('java.util.Map', ...)
@@ -30,18 +36,18 @@ let s:L= javaimport#vital('Data.List')
 " add({'class': 'java.lang.Boolean', 'field': 'TRUE'}, ...)
 " add({'class': 'java.util.Arrays', 'method': 'asList'}, ...)
 "
-function! s:import_manager__add(...) dict
-    let data= s:trans_args(a:000)
+function! s:add(...)
+    let data= s:_trans_args(a:000)
     let classes= filter(copy(data), '!has_key(v:val, "field") && !has_key(v:val, "method")')
     let fields=  filter(copy(data), 'has_key(v:val, "field")')
     let methods= filter(copy(data), 'has_key(v:val, "method")')
 
     let save_pos= getpos('.')
     try
-        let [_, elnum]= self.region()
+        let [_, elnum]= s:region()
 
         if elnum == 0
-            let elnum= s:search_package_declaration()
+            let elnum= s:_search_package_declaration()
         endif
 
         call append(elnum,
@@ -50,7 +56,7 @@ function! s:import_manager__add(...) dict
         \   map(copy(methods), 'printf("import static %s.%s;", v:val.class, v:val.method)')
         \)
 
-        call self.sort()
+        call s:sort()
     finally
         " let delta= len(after_classes) - len(before_classes)
         let delta= 0
@@ -59,27 +65,27 @@ function! s:import_manager__add(...) dict
     endtry
 endfunction
 
-function! s:import_manager__remove(...) dict
-    let data= s:trans_args(a:000)
+function! s:remove(...)
+    let data= s:_trans_args(a:000)
     let classes= map(filter(copy(data), '!has_key(v:val, "field") && !has_key(v:val, "method")'), 'v:val.class')
     let fields_and_methods= map(filter(copy(data), 'has_key(v:val, "field")'), 'v:val.class . "." . v:val.field') +
     \   map(filter(copy(data), 'has_key(v:val, "method")'), 'v:val.class . "." . v:val.method')
 
     let filtered_classes= []
-    for class in self.imported_classes()
+    for class in s:imported_classes()
         if !s:L.has(classes, class)
             let filtered_classes+= [{'class': class}]
         endif
     endfor
 
     let filtered_fields_and_methods= []
-    for field_or_method in self.imported_fields_and_methods()
+    for field_or_method in s:imported_fields_and_methods()
         if !s:L.has(fields_and_methods, field_or_method)
             let filtered_fields_and_methods+= [{'class': join(split(field_or_method, '\.')[ : -2], '.'), 'field': split(field_or_method, '\.')[-1]}]
         endif
     endfor
 
-    let [slnum, elnum]= self.region()
+    let [slnum, elnum]= s:region()
 
     if [slnum, elnum] == [0, 0]
         return
@@ -87,14 +93,14 @@ function! s:import_manager__remove(...) dict
 
     execute slnum . ',' . elnum .  'delete _'
 
-    call self.add(filtered_classes + filtered_fields_and_methods)
+    call s:add(filtered_classes + filtered_fields_and_methods)
 endfunction
 
-function! s:import_manager__sort() dict
+function! s:sort()
     let save_pos= getpos('.')
     try
         " gather already existed import statements
-        let [slnum, elnum]= self.region()
+        let [slnum, elnum]= s:region()
 
         if [slnum, elnum] == [0, 0]
             return
@@ -102,8 +108,8 @@ function! s:import_manager__sort() dict
 
         let before_nlines= elnum - slnum
 
-        let classes= self.imported_classes()
-        let fields_and_methods= self.imported_fields_and_methods()
+        let classes= s:imported_classes()
+        let fields_and_methods= s:imported_fields_and_methods()
 
         call sort(classes)
         call sort(fields_and_methods)
@@ -166,7 +172,7 @@ function! s:import_manager__sort() dict
             call append(slnum - 1, statements)
         endif
 
-        let [slnum, elnum]= self.region()
+        let [slnum, elnum]= s:region()
 
         let after_nlines= elnum - slnum
     finally
@@ -180,14 +186,14 @@ function! s:import_manager__sort() dict
     endtry
 endfunction
 
-function! s:import_manager__region() dict
+function! s:region()
     let save_pos= getpos('.')
     try
         call cursor(1, 1)
         while 1
             let slnum= search('\C\<import\>', 'Wce')
 
-            if slnum == 0 || s:syntax_of() !~# '\c\%(comment\)'
+            if slnum == 0 || s:_syntax_of() !~# '\c\%(comment\)'
                 break
             endif
 
@@ -199,7 +205,7 @@ function! s:import_manager__region() dict
         while 1
             let elnum= search('\C\<import\>', 'Wb')
 
-            if elnum == 0 || s:syntax_of() !~# '\c\%(comment\)'
+            if elnum == 0 || s:_syntax_of() !~# '\c\%(comment\)'
                 break
             endif
 
@@ -216,8 +222,8 @@ function! s:import_manager__region() dict
     endtry
 endfunction
 
-function! s:import_manager__imported_classes() dict
-    let [slnum, elnum]= self.region()
+function! s:imported_classes()
+    let [slnum, elnum]= s:region()
 
     if [slnum, elnum] ==# [0, 0]
         return []
@@ -232,8 +238,8 @@ function! s:import_manager__imported_classes() dict
     return s:L.uniq(classes)
 endfunction
 
-function! s:import_manager__imported_fields_and_methods() dict
-    let [slnum, elnum]= self.region()
+function! s:imported_fields_and_methods()
+    let [slnum, elnum]= s:region()
 
     if [slnum, elnum] ==# [0, 0]
         return []
@@ -247,50 +253,7 @@ function! s:import_manager__imported_fields_and_methods() dict
     return s:L.uniq(statics)
 endfunction
 
-if has('patch-7.3.1170')
-    function! javaimport#import_manager#new()
-        return {
-        \   'add': function('s:import_manager__add'),
-        \   'remove': function('s:import_manager__remove'),
-        \   'sort': function('s:import_manager__sort'),
-        \   'region': function('s:import_manager__region'),
-        \   'imported_classes': function('s:import_manager__imported_classes'),
-        \   'imported_fields_and_methods': function('s:import_manager__imported_fields_and_methods'),
-        \}
-    endfunction
-else
-    let s:__object__= {}
-
-    function! s:__object__.add(...)
-        return call('s:import_manager__add', a:000, self)
-    endfunction
-
-    function! s:__object__.remove(...)
-        return call('s:import_manager__remove', a:000, self)
-    endfunction
-
-    function! s:__object__.sort(...)
-        return call('s:import_manager__sort', a:000, self)
-    endfunction
-
-    function! s:__object__.region(...)
-        return call('s:import_manager__region', a:000, self)
-    endfunction
-
-    function! s:__object__.imported_classes(...)
-        return call('s:import_manager__imported_classes', a:000, self)
-    endfunction
-
-    function! s:__object__.imported_fields_and_methods(...)
-        return call('s:import_manager__imported_fields_and_methods', a:000, self)
-    endfunction
-
-    function! javaimport#import_manager#new()
-        return deepcopy(s:__object__)
-    endfunction
-endif
-
-function! s:trans_args(...)
+function! s:_trans_args(...)
     let args= []
     for arg in a:000
         if type(arg) == type('')
@@ -298,24 +261,24 @@ function! s:trans_args(...)
         elseif type(arg) == type({})
             let args+= [arg]
         elseif type(arg) == type([])
-            let args+= call('s:trans_args', arg)
+            let args+= call('s:_trans_args', arg)
         endif
     endfor
     return args
 endfunction
 
-function! s:syntax_of()
+function! s:_syntax_of()
     return synIDattr(synID(line('.'), col('.'), 1), 'name')
 endfunction
 
-function! s:search_package_declaration()
+function! s:_search_package_declaration()
     let save_pos= getpos('.')
     try
         call cursor(1, 1)
         while 1
             let lnum= search('\C\<package\>', 'Wce')
 
-            if lnum == 0 || s:syntax_of() !~# '\c\%(comment\)'
+            if lnum == 0 || s:_syntax_of() !~# '\c\%(comment\)'
                 break
             endif
 
