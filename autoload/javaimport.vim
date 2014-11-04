@@ -34,7 +34,7 @@ unlet s:V
 
 " autoload/javaimport.vim
 let s:plugin_dir= expand('<sfile>:h:h') . '/'
-let s:javaimport_classpath= s:plugin_dir . 'bin/javaimport-0.2.4.jar'
+let s:javaimport_classpath= s:plugin_dir . 'bin/javaimport-0.2.5-SNAPSHOT.jar'
 let s:config_classpath= s:plugin_dir . 'config/'
 
 let s:jclasspath= javaclasspath#get()
