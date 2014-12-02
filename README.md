@@ -18,8 +18,6 @@ How to Install
 
     1. [vim-javaclasspath](https://github.com/kamichidu/vim-javaclasspath)
 
-    1. [vim-javalang](https://github.com/kamichidu/vim-javalang)
-
     1. [w3m.vim](https://github.com/yuratomo/w3m.vim)
 
         This is optional. If you install this plugin, javadoc previewing feature will be enabled.
@@ -32,7 +30,6 @@ NeoBundle 'kamichidu/vim-unite-javaimport', {
 \       'Shougo/unite.vim',
 \       'Shougo/vimproc.vim',
 \       'kamichidu/vim-javaclasspath',
-\       'kamichidu/vim-javalang',
 \   ],
 \}
 ```
@@ -43,7 +40,6 @@ NeoBundle 'kamichidu/vim-unite-javaimport', {
 \       'Shougo/unite.vim',
 \       'Shougo/vimproc.vim',
 \       'kamichidu/vim-javaclasspath',
-\       'kamichidu/vim-javalang',
 \       'yuratomo/w3m.vim',
 \   ],
 \}

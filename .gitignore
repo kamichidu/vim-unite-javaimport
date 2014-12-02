@@ -5,3 +5,4 @@ javaimport/target/
 .vim-lint/
 *.lock
 logs/
+.deps/

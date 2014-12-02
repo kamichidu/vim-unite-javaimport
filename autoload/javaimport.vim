@@ -28,6 +28,8 @@ let s:L= s:V.import('Data.List')
 let s:J= s:V.import('Web.JSON')
 let s:M= s:V.import('Vim.Message')
 let s:F= s:V.import('System.File')
+let s:JLang= s:V.import('Java.Lang')
+let s:JImport= s:V.import('Java.Import')
 unlet s:V
 
 " autoload/javaimport.vim
@@ -36,7 +38,6 @@ let s:javaimport_classpath= s:plugin_dir . 'bin/javaimport-0.2.4.jar'
 let s:config_classpath= s:plugin_dir . 'config/'
 
 let s:jclasspath= javaclasspath#get()
-let s:jlang= javalang#get()
 
 let s:vital= {
 \   'Process': s:P,
@@ -197,7 +198,7 @@ endfunction
 "
 ""
 function! javaimport#sort_import_statements()
-    call s:import_manager().sort()
+    call s:JImport.sort()
 endfunction
 
 """
@@ -208,8 +209,8 @@ function! javaimport#remove_unnecesarries()
 
     let save_pos= getpos('.')
     try
-        let classes= s:import_manager().imported_classes()
-        let fields_and_methods= s:import_manager().imported_fields_and_methods()
+        let classes= s:JImport.imported_classes()
+        let fields_and_methods= s:JImport.imported_fields_and_methods()
 
         for class in classes
             let simple_name= split(class, '\.')[-1]
@@ -229,11 +230,11 @@ function! javaimport#remove_unnecesarries()
         call setpos('.', save_pos)
     endtry
 
-    call s:import_manager().remove(removals)
+    call s:JImport.remove(removals)
 endfunction
 
 function! javaimport#import(data)
-    call s:import_manager().add(a:data)
+    call s:JImport.add(a:data)
 endfunction
 
 """
@@ -242,7 +243,7 @@ endfunction
 " @return list of string
 ""
 function! javaimport#imported_classes()
-    return s:import_manager().imported_classes()
+    return s:JImport.imported_classes()
 endfunction
 
 function! javaimport#data_dir()
@@ -350,7 +351,7 @@ function! javaimport#start_analysis(paths)
         call javaimport#util#spawn(join([
         \   jvm,
         \   jvmargs,
-        \   '-cp', join([s:config_classpath, s:javaimport_classpath], s:jlang.constants.path_separator),
+        \   '-cp', join([s:config_classpath, s:javaimport_classpath], s:JLang.path_separator),
         \   'jp.michikusa.chitose.javaimport.cli.App',
         \   '--outputdir', javaimport#data_dir(),
         \   join(a:paths),
@@ -426,13 +427,6 @@ function! s:is_symbol_used(symbol)
     finally
         call setpos('.', save_pos)
     endtry
-endfunction
-
-function! s:import_manager()
-    if !exists('s:import_manager')
-        let s:import_manager= javaimport#import_manager#new()
-    endif
-    return s:import_manager
 endfunction
 
 let &cpo= s:save_cpo
