@@ -1,8 +1,8 @@
 *unite-javaimport.txt*
 
-Version: 0.30
+Version: 0.4.0
 Author:  kamichidu <c.kamunagi@gmail.com>
-Last Change: 05-Nov-2014.
+Last Change: 02-Dec-2014.
 License: The MIT License (MIT)
 
 Copyright (c) 2013-2014 kamichidu

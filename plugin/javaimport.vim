@@ -27,7 +27,7 @@ let g:loaded_javaimport= 1
 let s:save_cpo= &cpo
 set cpo&vim
 
-let g:javaimport_version= '0.30'
+let g:javaimport_version= '0.4.0'
 
 if !exists('g:javaimport_use_default_mapping')
     let g:javaimport_use_default_mapping= 1
