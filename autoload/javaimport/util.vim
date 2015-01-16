@@ -48,6 +48,7 @@ function! javaimport#util#spawn(expr, ...)
       silent execute '!start' '/B' 'cmd' '/C' cmdline
     else
       silent execute '!' cmdline '&'
+      redraw!
     endif
   finally
     if s:is_windows
