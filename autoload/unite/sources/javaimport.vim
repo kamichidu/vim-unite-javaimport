@@ -68,6 +68,10 @@ function! s:packages.gather_candidates(args, context)
 endfunction
 
 function! s:packages.async_gather_candidates(args, context)
+    if !a:context.is_async
+        return []
+    endif
+
     let candidates= []
     let paths= a:context.source__paths
     let filter= a:context.source__filter
@@ -154,6 +158,10 @@ function! s:classes.gather_candidates(args, context)
 endfunction
 
 function! s:classes.async_gather_candidates(args, context)
+    if !a:context.is_async
+        return []
+    endif
+
     let package_filter= a:context.source__package_filter
     let paths= a:context.source__paths
     let a:context.source__paths= []
@@ -259,6 +267,10 @@ function! s:fields.gather_candidates(args, context)
 endfunction
 
 function! s:fields.async_gather_candidates(args, context)
+    if !a:context.is_async
+        return []
+    endif
+
     let package_filter= a:context.source__package_filter
     let paths= a:context.source__paths
     let a:context.source__paths= []
@@ -377,6 +389,10 @@ function! s:methods.gather_candidates(args, context)
 endfunction
 
 function! s:methods.async_gather_candidates(args, context)
+    if !a:context.is_async
+        return []
+    endif
+
     let package_filter= a:context.source__package_filter
     let paths= a:context.source__paths
     let a:context.source__paths= []
